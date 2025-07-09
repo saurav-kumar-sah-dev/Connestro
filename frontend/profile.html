@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>User Profile</title>
+  <link rel="stylesheet" href="styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+  <!-- Navigation -->
+  <nav>
+    <div><strong>MiniSocial</strong></div>
+    <div>
+      <a href="index.html">Feed</a>
+      <a href="profile.html">My Profile</a>
+      <button id="logoutBtn">Logout</button>
+    </div>
+  </nav>
+
+  <!-- Profile Container -->
+  <div class="container">
+    <h1>User Profile</h1>
+
+    <div id="profileInfo" class="profile-card">
+      <h2 id="profileUsername" class="username"></h2>
+      <p id="profileBio"></p>
+      <p><strong>Followers:</strong> <span id="followersCount">0</span></p>
+      <p><strong>Following:</strong> <span id="followingCount">0</span></p>
+      <div class="follow-controls">
+        <button id="followBtn" class="follow-btn" style="display: none;">Follow</button>
+        <button id="unfollowBtn" class="unfollow-btn" style="display: none;">Unfollow</button>
+      </div>
+    </div>
+
+    <h3>User's Posts</h3>
+    <div id="userPosts"></div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

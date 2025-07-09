@@ -1,0 +1,158 @@
+/* Base styles */
+body {
+  font-family: 'Inter', sans-serif;
+  margin: 0;
+  background-color: #f3f4f6;
+  color: #1f2937;
+}
+
+/* Navbar */
+nav {
+  background-color: #111827;
+  color: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2rem;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+nav a,
+nav button {
+  color: white;
+  text-decoration: none;
+  margin-left: 1rem;
+  font-weight: 500;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+nav a:hover,
+nav button:hover {
+  text-decoration: underline;
+  opacity: 0.85;
+}
+
+/* Container */
+.container {
+  max-width: 700px;
+  margin: 2rem auto;
+  padding: 2rem;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.08);
+}
+
+/* Post Form */
+textarea {
+  width: 100%;
+  padding: 0.9rem;
+  font-size: 1rem;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  resize: vertical;
+  font-family: inherit;
+  background-color: #f9fafb;
+}
+
+.post-btn {
+  margin-top: 1rem;
+  padding: 0.75rem 1.5rem;
+  background-color: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.post-btn:hover {
+  background-color: #1d4ed8;
+}
+
+/* Post Card */
+.post {
+  border-top: 1px solid #e5e7eb;
+  padding: 1.5rem 0;
+  transition: background 0.2s ease;
+  border-radius: 8px;
+}
+
+.post:hover {
+  background-color: #f9fafb;
+}
+
+.post h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #1d4ed8;
+}
+
+.post p {
+  margin: 0.75rem 0 0.5rem;
+  line-height: 1.6;
+  font-size: 1rem;
+}
+
+.post small {
+  color: #6b7280;
+  font-size: 0.875rem;
+}
+
+.like-btn {
+  background: none;
+  border: none;
+  color: #ef4444;
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 0;
+  margin-top: 0.5rem;
+  transition: transform 0.2s ease;
+}
+
+.like-btn:hover {
+  transform: scale(1.15);
+}
+
+/* Profile Info */
+#profileInfo {
+  background: white;
+  padding: 2rem;
+  margin: 2rem auto;
+  max-width: 700px;
+  border-radius: 12px;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.08);
+}
+
+#profileInfo h2 {
+  margin-top: 0;
+  color: #1d4ed8;
+  font-size: 1.4rem;
+}
+
+#profileInfo p {
+  font-size: 1rem;
+  margin: 0.5rem 0;
+}
+
+#followBtn, #unfollowBtn {
+  margin-top: 1rem;
+  padding: 0.6rem 1.2rem;
+  background-color: #10b981;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+#unfollowBtn {
+  background-color: #ef4444;
+}
