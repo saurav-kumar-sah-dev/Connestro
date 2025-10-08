@@ -1,5 +1,5 @@
 // src/pages/Signup.jsx
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import API from "../api/axios";
 import { useTheme } from "../context/ThemeContext";
@@ -15,6 +15,22 @@ function getAge(date) {
   const m = today.getMonth() - date.getMonth();
   if (m < 0 || (m === 0 && today.getDate() < date.getDate())) age--;
   return age;
+}
+
+// Parse a YYYY-MM-DD string into a local Date (avoids UTC shift issues)
+function parseLocalYmd(val) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(val);
+  if (!m) return null;
+  const d = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+  return isNaN(d.getTime()) ? null : d;
+}
+
+// Format a Date to local YYYY-MM-DD (no timezone issues)
+function formatYmd(d) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
 }
 
 export default function Signup() {
@@ -52,6 +68,23 @@ export default function Signup() {
     max100: true,
   });
 
+  // Fallback for very old browsers that don't support type="date"
+  const [dobType, setDobType] = useState("date");
+  useEffect(() => {
+    const i = document.createElement("input");
+    i.setAttribute("type", "date");
+    if (i.type !== "date") setDobType("text");
+  }, []);
+
+  // Limit DOB to 13+ using max attribute
+  const today = new Date();
+  const maxDobDate = new Date(
+    today.getFullYear() - 13,
+    today.getMonth(),
+    today.getDate()
+  );
+  const maxDobStr = formatYmd(maxDobDate);
+
   const navigate = useNavigate();
   const { darkMode } = useTheme();
 
@@ -70,9 +103,10 @@ export default function Signup() {
       setDobChecks({ valid: true, notFuture: true, age13: true });
       return;
     }
-    const d = new Date(val);
-    const isValid = !isNaN(d.getTime());
-    const notFuture = isValid ? d <= new Date() : false;
+    const d = parseLocalYmd(val);
+    const isValid = !!d;
+    const now = new Date();
+    const notFuture = isValid ? d <= now : false;
     const age13 = isValid ? getAge(d) >= 13 : false;
     setDobChecks({ valid: isValid, notFuture, age13 });
   };
@@ -174,7 +208,11 @@ export default function Signup() {
       <span className={`mt-0.5 ${ok ? "text-green-500" : "text-gray-400"}`}>
         {ok ? "✓" : "•"}
       </span>
-      <span className={`leading-relaxed ${darkMode ? "text-slate-300" : "text-slate-700"}`}>
+      <span
+        className={`leading-relaxed ${
+          darkMode ? "text-slate-300" : "text-slate-700"
+        }`}
+      >
         {label}
       </span>
     </li>
@@ -192,9 +230,17 @@ export default function Signup() {
     (passwordChecks.symbol ? 1 : 0);
   const strengthPct = (strengthCount / 5) * 100;
   const strengthLabel =
-    strengthCount <= 2 ? "Weak" : strengthCount === 3 || strengthCount === 4 ? "Medium" : "Strong";
+    strengthCount <= 2
+      ? "Weak"
+      : strengthCount === 3 || strengthCount === 4
+      ? "Medium"
+      : "Strong";
   const strengthColor =
-    strengthCount <= 2 ? "bg-red-500" : strengthCount <= 4 ? "bg-amber-500" : "bg-emerald-500";
+    strengthCount <= 2
+      ? "bg-red-500"
+      : strengthCount <= 4
+      ? "bg-amber-500"
+      : "bg-emerald-500";
 
   return (
     <div
@@ -214,8 +260,8 @@ export default function Signup() {
       <div className="relative w-full max-w-md mx-auto">
         <div
           className={`rounded-2xl shadow-2xl border backdrop-blur-sm overflow-hidden ${
-            darkMode 
-              ? "border-slate-800 bg-slate-900/95 shadow-slate-900/50" 
+            darkMode
+              ? "border-slate-800 bg-slate-900/95 shadow-slate-900/50"
               : "border-slate-200 bg-white/95 shadow-slate-200/50"
           }`}
         >
@@ -230,7 +276,11 @@ export default function Signup() {
             <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
               Create Account
             </h1>
-            <p className={`mt-2 text-sm ${darkMode ? "text-slate-400" : "text-slate-600"}`}>
+            <p
+              className={`mt-2 text-sm ${
+                darkMode ? "text-slate-400" : "text-slate-600"
+              }`}
+            >
               Join Connestro today
             </p>
           </div>
@@ -239,13 +289,26 @@ export default function Signup() {
             {/* Name fields */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <label htmlFor="firstName" className="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                <label
+                  htmlFor="firstName"
+                  className="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400"
+                >
                   First name
                 </label>
                 <div className="relative group">
                   <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-slate-400 group-focus-within:text-blue-500 transition-colors">
-                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    <svg
+                      className="h-4 w-4"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                      />
                     </svg>
                   </span>
                   <input
@@ -265,13 +328,26 @@ export default function Signup() {
               </div>
 
               <div className="space-y-1.5">
-                <label htmlFor="lastName" className="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                <label
+                  htmlFor="lastName"
+                  className="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400"
+                >
                   Last name
                 </label>
                 <div className="relative group">
                   <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-slate-400 group-focus-within:text-blue-500 transition-colors">
-                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    <svg
+                      className="h-4 w-4"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                      />
                     </svg>
                   </span>
                   <input
@@ -293,7 +369,10 @@ export default function Signup() {
 
             {/* Gender */}
             <div className="space-y-1.5">
-              <label htmlFor="gender" className="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+              <label
+                htmlFor="gender"
+                className="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400"
+              >
                 Gender
               </label>
               <select
@@ -316,14 +395,31 @@ export default function Signup() {
 
             {/* Place */}
             <div className="space-y-1.5">
-              <label htmlFor="place" className="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+              <label
+                htmlFor="place"
+                className="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400"
+              >
                 Place
               </label>
               <div className="relative group">
                 <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-slate-400 group-focus-within:text-blue-500 transition-colors">
-                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <svg
+                    className="h-4 w-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                    />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                    />
                   </svg>
                 </span>
                 <input
@@ -346,48 +442,63 @@ export default function Signup() {
             {showPlaceRules && (
               <div
                 className={`text-xs rounded-xl p-3 border ${
-                  darkMode 
-                    ? "bg-amber-900/20 border-amber-800/30 text-amber-200" 
+                  darkMode
+                    ? "bg-amber-900/20 border-amber-800/30 text-amber-200"
                     : "bg-amber-50 border-amber-200 text-amber-900"
                 }`}
               >
                 <p className="font-semibold mb-2">Place requirements:</p>
                 <ul className="space-y-1">
                   {checkItem(placeChecks.min2, "At least 2 characters")}
-                  {checkItem(placeChecks.allowed, "Letters, spaces, commas, periods, apostrophes and hyphens only")}
+                  {checkItem(
+                    placeChecks.allowed,
+                    "Letters, spaces, commas, periods, apostrophes and hyphens only"
+                  )}
                   {checkItem(placeChecks.max100, "Maximum 100 characters")}
                 </ul>
               </div>
             )}
 
-            {/* Date of Birth - Fixed for mobile */}
+            {/* Date of Birth - Mobile Safe */}
             <div className="space-y-1.5">
-              <label htmlFor="dob" className="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+              <label
+                htmlFor="dob"
+                className="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400"
+              >
                 Date of birth
               </label>
               <div className="relative group">
                 <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-slate-400 group-focus-within:text-blue-500 transition-colors">
-                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  <svg
+                    className="h-4 w-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                    />
                   </svg>
                 </span>
                 <input
-                  type="date"
+                  type={dobType}
                   id="dob"
                   name="dob"
                   value={formData.dob}
                   onChange={handleChange}
-                  inputMode="numeric"
-                  pattern="\d{4}-\d{2}-\d{2}"
-                  className={`w-full border-2 pl-10 pr-3 py-2.5 rounded-xl transition-all duration-200 focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 appearance-none ${
+                  min="1900-01-01"
+                  max={maxDobStr}
+                  placeholder={dobType === "text" ? "YYYY-MM-DD" : undefined}
+                  inputMode={dobType === "text" ? "numeric" : undefined}
+                  pattern={dobType === "text" ? "\\d{4}-\\d{2}-\\d{2}" : undefined}
+                  className={`w-full border-2 pl-10 pr-3 py-2.5 rounded-xl transition-all duration-200 focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 ${
                     darkMode
                       ? "border-slate-700 bg-slate-800/50 text-slate-100 hover:border-slate-600 [color-scheme:dark]"
                       : "border-slate-200 bg-white text-slate-900 hover:border-slate-300"
                   } ${showDobRules ? "border-amber-500 focus:border-amber-500" : ""}`}
-                  style={{ 
-                    WebkitAppearance: 'none',
-                    MozAppearance: 'textfield'
-                  }}
                   required
                 />
               </div>
@@ -396,8 +507,8 @@ export default function Signup() {
             {showDobRules && (
               <div
                 className={`text-xs rounded-xl p-3 border ${
-                  darkMode 
-                    ? "bg-amber-900/20 border-amber-800/30 text-amber-200" 
+                  darkMode
+                    ? "bg-amber-900/20 border-amber-800/30 text-amber-200"
                     : "bg-amber-50 border-amber-200 text-amber-900"
                 }`}
               >
@@ -412,13 +523,26 @@ export default function Signup() {
 
             {/* Email */}
             <div className="space-y-1.5">
-              <label htmlFor="email" className="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+              <label
+                htmlFor="email"
+                className="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400"
+              >
                 Email address
               </label>
               <div className="relative group">
                 <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-slate-400 group-focus-within:text-blue-500 transition-colors">
-                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  <svg
+                    className="h-4 w-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                    />
                   </svg>
                 </span>
                 <input
@@ -434,14 +558,22 @@ export default function Signup() {
                     darkMode
                       ? "border-slate-700 bg-slate-800/50 text-slate-100 placeholder-slate-500 hover:border-slate-600"
                       : "border-slate-200 bg-white text-slate-900 placeholder-slate-400 hover:border-slate-300"
-                  } ${!emailValid && formData.email ? "border-red-500 focus:border-red-500 focus:ring-red-500/20" : ""}`}
+                  } ${
+                    !emailValid && formData.email
+                      ? "border-red-500 focus:border-red-500 focus:ring-red-500/20"
+                      : ""
+                  }`}
                   required
                 />
               </div>
               {!emailValid && formData.email && (
                 <p className="text-xs text-red-500 mt-1 flex items-center gap-1">
                   <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                    <path
+                      fillRule="evenodd"
+                      d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                      clipRule="evenodd"
+                    />
                   </svg>
                   Please enter a valid email address
                 </p>
@@ -450,13 +582,26 @@ export default function Signup() {
 
             {/* Password */}
             <div className="space-y-1.5">
-              <label htmlFor="password" className="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+              <label
+                htmlFor="password"
+                className="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400"
+              >
                 Password
               </label>
               <div className="relative group">
                 <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-slate-400 group-focus-within:text-blue-500 transition-colors">
-                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                  <svg
+                    className="h-4 w-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                    />
                   </svg>
                 </span>
                 <input
@@ -480,16 +625,25 @@ export default function Signup() {
               {formData.password && (
                 <div className="mt-2 space-y-1">
                   <div className="flex items-center gap-2">
-                    <div className={`flex-1 h-2 rounded-full overflow-hidden ${darkMode ? "bg-slate-800" : "bg-slate-200"}`}>
+                    <div
+                      className={`flex-1 h-2 rounded-full overflow-hidden ${
+                        darkMode ? "bg-slate-800" : "bg-slate-200"
+                      }`}
+                    >
                       <div
                         className={`h-full rounded-full transition-all duration-500 ${strengthColor}`}
                         style={{ width: `${strengthPct}%` }}
                       />
                     </div>
-                    <span className={`text-xs font-medium ${
-                      strengthCount <= 2 ? "text-red-500" : 
-                      strengthCount <= 4 ? "text-amber-500" : "text-emerald-500"
-                    }`}>
+                    <span
+                      className={`text-xs font-medium ${
+                        strengthCount <= 2
+                          ? "text-red-500"
+                          : strengthCount <= 4
+                          ? "text-amber-500"
+                          : "text-emerald-500"
+                      }`}
+                    >
                       {strengthLabel}
                     </span>
                   </div>
@@ -499,13 +653,26 @@ export default function Signup() {
 
             {/* Confirm Password */}
             <div className="space-y-1.5">
-              <label htmlFor="confirmPassword" className="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+              <label
+                htmlFor="confirmPassword"
+                className="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400"
+              >
                 Confirm password
               </label>
               <div className="relative group">
                 <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-slate-400 group-focus-within:text-blue-500 transition-colors">
-                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                  <svg
+                    className="h-4 w-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                    />
                   </svg>
                 </span>
                 <input
@@ -521,28 +688,34 @@ export default function Signup() {
                       ? "border-slate-700 bg-slate-800/50 text-slate-100 placeholder-slate-500 hover:border-slate-600"
                       : "border-slate-200 bg-white text-slate-900 placeholder-slate-400 hover:border-slate-300"
                   } ${
-                    formData.confirmPassword && formData.password !== formData.confirmPassword
+                    formData.confirmPassword &&
+                    formData.password !== formData.confirmPassword
                       ? "border-red-500 focus:border-red-500 focus:ring-red-500/20"
                       : ""
                   }`}
                   required
                 />
               </div>
-              {formData.confirmPassword && formData.password !== formData.confirmPassword && (
-                <p className="text-xs text-red-500 mt-1 flex items-center gap-1">
-                  <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                  </svg>
-                  Passwords do not match
-                </p>
-              )}
+              {formData.confirmPassword &&
+                formData.password !== formData.confirmPassword && (
+                  <p className="text-xs text-red-500 mt-1 flex items-center gap-1">
+                    <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
+                      <path
+                        fillRule="evenodd"
+                        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                    Passwords do not match
+                  </p>
+                )}
             </div>
 
             {showPasswordRules && (
               <div
                 className={`text-xs rounded-xl p-3 border ${
-                  darkMode 
-                    ? "bg-blue-900/20 border-blue-800/30 text-blue-200" 
+                  darkMode
+                    ? "bg-blue-900/20 border-blue-800/30 text-blue-200"
                     : "bg-blue-50 border-blue-200 text-blue-900"
                 }`}
               >
@@ -567,13 +740,23 @@ export default function Signup() {
                 className="mt-1 h-4 w-4 rounded border-2 border-slate-300 text-blue-600 focus:ring-2 focus:ring-blue-500 cursor-pointer"
                 required
               />
-              <span className={`text-sm leading-relaxed ${darkMode ? "text-slate-300" : "text-slate-700"}`}>
+              <span
+                className={`text-sm leading-relaxed ${
+                  darkMode ? "text-slate-300" : "text-slate-700"
+                }`}
+              >
                 I agree to the{" "}
-                <Link to="/terms#terms" className="text-blue-600 hover:text-blue-700 hover:underline font-medium">
+                <Link
+                  to="/terms#terms"
+                  className="text-blue-600 hover:text-blue-700 hover:underline font-medium"
+                >
                   Terms & Conditions
                 </Link>{" "}
                 and{" "}
-                <Link to="/terms#privacy" className="text-blue-600 hover:text-blue-700 hover:underline font-medium">
+                <Link
+                  to="/terms#privacy"
+                  className="text-blue-600 hover:text-blue-700 hover:underline font-medium"
+                >
                   Privacy Policy
                 </Link>
               </span>
@@ -602,8 +785,8 @@ export default function Signup() {
               }`}
             >
               Already have an account?{" "}
-              <Link 
-                className="text-blue-600 hover:text-blue-700 font-semibold hover:underline transition-colors" 
+              <Link
+                className="text-blue-600 hover:text-blue-700 font-semibold hover:underline transition-colors"
                 to="/login"
               >
                 Sign in
