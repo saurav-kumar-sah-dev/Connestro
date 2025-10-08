@@ -1,13 +1,13 @@
 import { useState, useContext, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { 
-  MessageCircle, 
-  MoreVertical, 
-  Heart, 
-  Send, 
-  Edit3, 
-  Trash2, 
-  Flag, 
+import {
+  MessageCircle,
+  MoreVertical,
+  Heart,
+  Send,
+  Edit3,
+  Trash2,
+  Flag,
   Share2,
   Globe,
   Users,
@@ -15,7 +15,7 @@ import {
   ThumbsUp,
   Smile,
   Flame,
-  Laugh
+  Laugh,
 } from "lucide-react";
 import API from "../api/axios";
 import { AppContext } from "../context/AppContext";
@@ -65,7 +65,9 @@ const fileNameFromUrl = (url = "") => {
 };
 
 const extFromName = (name = "") => {
-  const m = String(name).toLowerCase().match(/\.([a-z0-9]+)$/);
+  const m = String(name)
+    .toLowerCase()
+    .match(/\.([a-z0-9]+)$/);
   return m ? m[1] : "";
 };
 
@@ -229,9 +231,7 @@ export default function PostCard({
             Array.isArray(next.comments) &&
             next.comments.some((c) =>
               Array.isArray(c.replies)
-                ? c.replies.some(
-                    (r) => String(r?.user?._id) === String(userId)
-                  )
+                ? c.replies.some((r) => String(r?.user?._id) === String(userId))
                 : false
             )
           ) {
@@ -483,14 +483,12 @@ export default function PostCard({
       reactions: Array.isArray(c.reactions) ? c.reactions : [],
       user: getUserData(c.user, users),
       replies: Array.isArray(c.replies)
-        ? c.replies
-            .filter(Boolean)
-            .map((r) => ({
-              _id: r._id || safeUUID(),
-              text: r.text || "",
-              reactions: Array.isArray(r.reactions) ? r.reactions : [],
-              user: getUserData(r.user, users),
-            }))
+        ? c.replies.filter(Boolean).map((r) => ({
+            _id: r._id || safeUUID(),
+            text: r.text || "",
+            reactions: Array.isArray(r.reactions) ? r.reactions : [],
+            user: getUserData(r.user, users),
+          }))
         : [],
     }));
 
@@ -498,16 +496,18 @@ export default function PostCard({
     ? visibleComments
     : visibleComments.slice(-1);
 
-  const AudienceIcon = 
-    post.visibility === "private" ? Lock : 
-    post.visibility === "followers" ? Users : 
-    Globe;
+  const AudienceIcon =
+    post.visibility === "private"
+      ? Lock
+      : post.visibility === "followers"
+      ? Users
+      : Globe;
 
   return (
     <div className="relative rounded-2xl border-2 border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden group">
       {/* Gradient accent */}
       <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-600 via-purple-500 to-pink-500" />
-      
+
       <div className="p-5 md:p-6">
         {/* Header */}
         <div className="flex justify-between items-start mb-4">
@@ -521,7 +521,7 @@ export default function PostCard({
                 alt={userData.username}
                 className="w-12 h-12 md:w-14 md:h-14 rounded-full object-cover ring-2 ring-gray-200 dark:ring-gray-700 shadow-md hover:scale-105 transition-transform duration-200"
               />
-              <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white dark:border-gray-900"></div>
+              {/* online/offline indicator removed */}
             </div>
             <div className="flex-1 min-w-0">
               <p className="font-bold text-gray-900 dark:text-gray-100 hover:text-blue-600 dark:hover:text-blue-400 transition-colors truncate">
@@ -534,12 +534,14 @@ export default function PostCard({
               )}
               <div className="flex flex-wrap items-center gap-2 mt-1">
                 <span className="text-xs text-gray-500 dark:text-gray-400">
-                  {post.createdAt ? new Date(post.createdAt).toLocaleString([], {
-                    month: 'short',
-                    day: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit'
-                  }) : ""}
+                  {post.createdAt
+                    ? new Date(post.createdAt).toLocaleString([], {
+                        month: "short",
+                        day: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })
+                    : ""}
                 </span>
                 <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-gradient-to-r from-blue-100 to-purple-100 dark:from-blue-900/30 dark:to-purple-900/30 text-blue-700 dark:text-blue-300">
                   <AudienceIcon className="w-3 h-3" />
@@ -600,8 +602,8 @@ export default function PostCard({
                 </button>
                 {showMenu && (
                   <>
-                    <div 
-                      className="fixed inset-0 z-40" 
+                    <div
+                      className="fixed inset-0 z-40"
                       onClick={() => setShowMenu(false)}
                     />
                     <div className="absolute right-0 mt-2 bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 rounded-2xl shadow-2xl w-64 z-50 overflow-hidden">
@@ -612,8 +614,12 @@ export default function PostCard({
                           </div>
                           {[
                             { value: "public", label: "Public", icon: Globe },
-                            { value: "followers", label: "Followers Only", icon: Users },
-                            { value: "private", label: "Private", icon: Lock }
+                            {
+                              value: "followers",
+                              label: "Followers Only",
+                              icon: Users,
+                            },
+                            { value: "private", label: "Private", icon: Lock },
                           ].map(({ value, label, icon: Icon }) => (
                             <button
                               key={value}
@@ -632,8 +638,12 @@ export default function PostCard({
                           </div>
                           {[
                             { value: "public", label: "Public", icon: Globe },
-                            { value: "followers", label: "Followers Only", icon: Users },
-                            { value: "private", label: "Private", icon: Lock }
+                            {
+                              value: "followers",
+                              label: "Followers Only",
+                              icon: Users,
+                            },
+                            { value: "private", label: "Private", icon: Lock },
                           ].map(({ value, label, icon: Icon }) => (
                             <button
                               key={value}
@@ -744,7 +754,10 @@ export default function PostCard({
         {post.media?.map((m) => {
           if (m.type === "image") {
             return (
-              <div key={m._id || m.url} className="mb-4 overflow-hidden rounded-2xl border-2 border-gray-200 dark:border-gray-800">
+              <div
+                key={m._id || m.url}
+                className="mb-4 overflow-hidden rounded-2xl border-2 border-gray-200 dark:border-gray-800"
+              >
                 <img
                   src={buildFileUrl(m.url)}
                   alt="post"
@@ -755,7 +768,10 @@ export default function PostCard({
           }
           if (m.type === "video") {
             return (
-              <div key={m._id || m.url} className="mb-4 overflow-hidden rounded-2xl border-2 border-gray-200 dark:border-gray-800">
+              <div
+                key={m._id || m.url}
+                className="mb-4 overflow-hidden rounded-2xl border-2 border-gray-200 dark:border-gray-800"
+              >
                 <video controls className="w-full rounded-2xl">
                   <source src={buildFileUrl(m.url)} />
                 </video>
@@ -783,7 +799,8 @@ export default function PostCard({
                       {name}
                     </div>
                     <div className="text-xs text-gray-500 dark:text-gray-400">
-                      {ext ? ext.toUpperCase() : "DOC"} {sizeLabel ? `• ${sizeLabel}` : ""}
+                      {ext ? ext.toUpperCase() : "DOC"}{" "}
+                      {sizeLabel ? `• ${sizeLabel}` : ""}
                     </div>
                   </div>
                 </a>
@@ -828,23 +845,26 @@ export default function PostCard({
           >
             <MessageCircle className="w-5 h-5" />
             <span>
-              {(Array.isArray(post.comments) ? post.comments.filter(Boolean) : [])
-                .length || 0}
+              {(Array.isArray(post.comments)
+                ? post.comments.filter(Boolean)
+                : []
+              ).length || 0}
             </span>
           </button>
         </div>
 
         {/* Comments */}
         {commentsToShow.map((c, idx) => (
-          <div key={c._id || `comment-${idx}`} className="mb-4 p-4 bg-gray-50 dark:bg-gray-800/50 rounded-2xl">
+          <div
+            key={c._id || `comment-${idx}`}
+            className="mb-4 p-4 bg-gray-50 dark:bg-gray-800/50 rounded-2xl"
+          >
             <div className="flex items-start gap-3">
               <img
                 src={c.user.profileImage}
                 alt={c.user.username}
                 className="w-10 h-10 rounded-full object-cover cursor-pointer ring-2 ring-gray-200 dark:ring-gray-700 hover:scale-110 transition-transform"
-                onClick={() =>
-                  c.user._id && navigate(`/profile/${c.user._id}`)
-                }
+                onClick={() => c.user._id && navigate(`/profile/${c.user._id}`)}
               />
               <div className="flex-1">
                 <p className="text-sm text-gray-800 dark:text-gray-200">
@@ -855,8 +875,7 @@ export default function PostCard({
                     }
                   >
                     {c.user.username}
-                  </span>
-                  {" "}
+                  </span>{" "}
                   {c.text}
                 </p>
 
@@ -865,7 +884,7 @@ export default function PostCard({
                     { emoji: "👍", icon: ThumbsUp },
                     { emoji: "❤️", icon: Heart },
                     { emoji: "😂", icon: Laugh },
-                    { emoji: "🔥", icon: Flame }
+                    { emoji: "🔥", icon: Flame },
                   ].map(({ emoji, icon: Icon }) => (
                     <button
                       key={emoji}
@@ -898,7 +917,10 @@ export default function PostCard({
                         return acc;
                       }, {})
                     ).map(([emoji, count], idx2) => (
-                      <span key={`${emoji}-${idx2}`} className="bg-white dark:bg-gray-700 px-2 py-1 rounded-full">
+                      <span
+                        key={`${emoji}-${idx2}`}
+                        className="bg-white dark:bg-gray-700 px-2 py-1 rounded-full"
+                      >
                         {emoji} {count}
                       </span>
                     ))}
@@ -944,8 +966,7 @@ export default function PostCard({
                               }
                             >
                               {r.user.username}
-                            </span>
-                            {" "}
+                            </span>{" "}
                             {r.text}
                           </p>
 
@@ -972,7 +993,10 @@ export default function PostCard({
                                     return acc;
                                   }, {})
                                 ).map(([emoji, count]) => (
-                                  <span key={emoji} className="bg-white dark:bg-gray-700 px-2 py-1 rounded-full">
+                                  <span
+                                    key={emoji}
+                                    className="bg-white dark:bg-gray-700 px-2 py-1 rounded-full"
+                                  >
                                     {emoji} {count}
                                   </span>
                                 ))}
