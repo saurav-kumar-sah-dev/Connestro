@@ -104,43 +104,10 @@ Connestro is a full‑stack social platform with real‑time features, private m
 
 ---
 
-## Monorepo Layout
-server/
-controllers/
-middleware/
-models/
-routes/
-utils/
-lib/
-uploads.js
-ffprobe.js
-uploads/ # created automatically
-profileImages/
-posts/
-chat/
-reports/
-stories/
-reels/ # NEW: storage for reels videos
-server.js
-.env # create (see below)
+## 🌐 Connect & Try  
 
-client/
-src/
-api/
-components/
-stories/
-reels/ # NEW: UI for reels feed/player
-context/
-pages/
-routes/
-utils/
-public/
-sounds/
-.env # create (see below)
-vite.config.* # Vite
-
-text
-
+🔗 [**View Deployed App**](https://connestro.vercel.app/) ✅ *(Live Now)*  
+🔗 [**Linkedin Profile**](https://www.linkedin.com/in/sauravkumarsah-dev/) ✅ *(Linkedin)*  
 
 ---
 
@@ -517,10 +484,98 @@ Add your license of choice (e.g., MIT).
 
 ---
 
-## Screenshots (optional)
-Add UI screenshots/gifs:
-- Feed with StoryBar and rings
-- Profile with story ring and Status
-- Reels feed/player
-- Messaging + calls
-- Admin dashboard
+## 📸 Screenshots
+
+### 🧩 Authentication
+<p align="center">
+  <img src="https://drive.google.com/uc?export=view&id=1JUh8huCoMb_6wMHDX0xRQoSaWE2_qHmp" width="45%" alt="Signup Users" />
+  <img src="https://drive.google.com/uc?export=view&id=1hv4WbsBjmHboqqIgqdTGOswSCjcNZPHd" width="45%" alt="Login Users" />
+</p>
+<p align="center">
+  <img src="https://drive.google.com/uc?export=view&id=1RXNYBEXrxp88bQ5v-ghgJ2gSpH0BgUyb" width="45%" alt="Terms and Conditions" />
+  <img src="https://drive.google.com/uc?export=view&id=1uV_YGx5-DQcf-q1KQBLw5hUCrxyEOqpj" width="45%" alt="Forgot Password" />
+</p>
+
+---
+
+### 👤 Profile
+<p align="center">
+  <img src="https://drive.google.com/uc?export=view&id=1T6KlHdF4mrNKexmnA0B2h-VHd9rzw6wP" width="45%" alt="View Other Users Profile" />
+  <img src="https://drive.google.com/uc?export=view&id=1wsLQHJWaD-M9bDecuVtSLMHFyS_ob5rr" width="45%" alt="My Profile" />
+</p>
+<p align="center">
+  <img src="https://drive.google.com/uc?export=view&id=1NFWA1h1YXFckrsOiDRQm6GlCK9wWltMw" width="45%" alt="Switch Account" />
+  <img src="https://drive.google.com/uc?export=view&id=1LPP6U5kq_Agadzub8c5efss207hq6ojC" width="45%" alt="Search Users" />
+</p>
+<p align="center">
+  <img src="https://drive.google.com/uc?export=view&id=1Wlr4cCZj4LfTRajaTZhZzEzP30DmAhu9" width="45%" alt="Edit Profile" />
+  <img src="https://drive.google.com/uc?export=view&id=1pvmvL7wN5p8s3BDutzLdhjEyP-o67jC8" width="45%" alt="Enhance Profile" />
+</p>
+
+---
+
+### 🏠 Home Page
+<p align="center">
+  <img src="https://drive.google.com/uc?export=view&id=1d43oAJPDLQZx2aXzyXbwRvydhOFyRLo4" width="45%" alt="Dark Theme" />
+  <img src="https://drive.google.com/uc?export=view&id=15VxBRUFd2kh-0GPuM2hsq-g8CaWxe9SI" width="45%" alt="Light Theme" />
+</p>
+
+---
+
+### 🛠️ Admin Dashboard
+<p align="center">
+  <img src="https://drive.google.com/uc?export=view&id=1wdv1OxeqoLpS2wp-Hgxtk1V3IxaASVIq" width="45%" alt="Admin Overview" />
+  <img src="https://drive.google.com/uc?export=view&id=1Zj2BOv9-O0vJrFbxTOt_fS12J1BFf-2K" width="45%" alt="Users Management" />
+</p>
+<p align="center">
+  <img src="https://drive.google.com/uc?export=view&id=1wq3E1l3KMJ8q4v-xe3AaGhkJT_EDFdq_" width="45%" alt="Posts Management" />
+  <img src="https://drive.google.com/uc?export=view&id=1V-PtbKFDeUZisBKCQYe_45n60HJEd2uj" width="45%" alt="Reels Management" />
+</p>
+<p align="center">
+  <img src="https://drive.google.com/uc?export=view&id=1Q38R2Qm-Npvo3NaWKCzS7NL-uqzFrf-a" width="45%" alt="Report UI" />
+  <img src="https://drive.google.com/uc?export=view&id=1rfHfLas3s70cUS_FBwu68mwiLEOL7UUT" width="45%" alt="Audit Logs" />
+</p>
+
+---
+
+### 💬 Status
+<p align="center">
+  <img src="https://drive.google.com/uc?export=view&id=1KKhPZnprTb3B-O6DQ6fOfjEM1ec2ig1B" width="60%" alt="Status UI" />
+</p>
+
+---
+
+### 📰 Feed
+<p align="center">
+  <img src="https://drive.google.com/uc?export=view&id=1TnnBP-LcUovi6u5LmKDotzZIRCdxtsyR" width="45%" alt="Feed UI" />
+  <img src="https://drive.google.com/uc?export=view&id=1sHNsdIEyfYph_Cx5PpoyxtVoNakFtx0I" width="45%" alt="Post Creation" />
+</p>
+
+---
+
+### 🎬 Reels
+<p align="center">
+  <img src="https://drive.google.com/uc?export=view&id=1jSrsQb8_67PyNUvz2KhEU5WfznRChlpz" width="45%" alt="Reel UI" />
+  <img src="https://drive.google.com/uc?export=view&id=1fFLAfuUTHnRFF4M0vZvoyakwelE832UG" width="45%" alt="Reel Creation" />
+</p>
+
+---
+
+### 🔔 Notification
+<p align="center">
+  <img src="https://drive.google.com/uc?export=view&id=1zlsRsmkIpTe2Or9XG5kB9Jezzs_nFZj0" width="60%" alt="Notification UI" />
+</p>
+
+---
+
+### 💌 Message
+<p align="center">
+  <img src="https://drive.google.com/uc?export=view&id=145LtlQNKYAEbGwXoHwr4UZ_evo8j38em" width="60%" alt="Message UI" />
+</p>
+
+---
+
+### 🧾 Reports
+<p align="center">
+  <img src="https://drive.google.com/uc?export=view&id=1WJdNhi4ZezGEfARbsu1oyeMMWmTzhKY3" width="60%" alt="Reports UI" />
+</p>
