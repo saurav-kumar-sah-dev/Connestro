@@ -170,11 +170,11 @@ export default function Signup() {
   };
 
   const checkItem = (ok, label) => (
-    <li className="flex items-center gap-2">
-      <span className={ok ? "text-green-500" : "text-gray-400"}>
+    <li className="flex items-start gap-2 text-[13px] sm:text-sm">
+      <span className={`mt-0.5 ${ok ? "text-green-500" : "text-gray-400"}`}>
         {ok ? "✓" : "•"}
       </span>
-      <span className={darkMode ? "text-slate-300" : "text-slate-700"}>
+      <span className={`leading-relaxed ${darkMode ? "text-slate-300" : "text-slate-700"}`}>
         {label}
       </span>
     </li>
@@ -198,49 +198,55 @@ export default function Signup() {
 
   return (
     <div
-      className={`relative min-h-screen px-4 py-10 flex items-center justify-center transition-colors duration-300 ${
+      className={`relative min-h-screen px-4 py-6 sm:py-10 flex items-center justify-center transition-colors duration-300 ${
         darkMode
           ? "bg-slate-950 text-slate-200"
-          : "bg-gradient-to-b from-slate-50 to-white text-slate-800"
+          : "bg-gradient-to-br from-blue-50 via-white to-purple-50 text-slate-800"
       }`}
     >
-      {/* Decorative background flares */}
+      {/* Animated background gradients */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute -top-24 -right-32 h-72 w-72 rounded-full blur-3xl bg-gradient-to-br from-blue-500/20 to-cyan-400/10" />
-        <div className="absolute -bottom-24 -left-32 h-72 w-72 rounded-full blur-3xl bg-gradient-to-tr from-indigo-400/10 to-blue-500/20" />
+        <div className="absolute -top-40 -right-40 h-80 w-80 rounded-full blur-[100px] bg-gradient-to-br from-blue-400/30 to-cyan-300/20 animate-pulse" />
+        <div className="absolute -bottom-40 -left-40 h-80 w-80 rounded-full blur-[100px] bg-gradient-to-tr from-purple-400/20 to-pink-300/20 animate-pulse" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-96 w-96 rounded-full blur-[120px] bg-gradient-to-r from-blue-300/10 to-purple-300/10" />
       </div>
 
-      <div className="relative w-full max-w-md">
+      <div className="relative w-full max-w-md mx-auto">
         <div
-          className={`rounded-2xl shadow-xl border overflow-hidden ${
-            darkMode ? "border-slate-800 bg-slate-900" : "border-slate-200 bg-white"
+          className={`rounded-2xl shadow-2xl border backdrop-blur-sm overflow-hidden ${
+            darkMode 
+              ? "border-slate-800 bg-slate-900/95 shadow-slate-900/50" 
+              : "border-slate-200 bg-white/95 shadow-slate-200/50"
           }`}
         >
-          {/* Accent bar */}
-          <div className="h-1 bg-gradient-to-r from-blue-600 via-cyan-400 to-blue-600" />
+          {/* Gradient accent bar */}
+          <div className="h-1.5 bg-gradient-to-r from-blue-600 via-purple-600 to-blue-600 animate-gradient" />
 
           <div
-            className={`px-6 pt-6 pb-4 text-center border-b ${
-              darkMode ? "border-slate-800" : "border-slate-200"
+            className={`px-6 sm:px-8 pt-6 pb-4 text-center border-b ${
+              darkMode ? "border-slate-800" : "border-slate-100"
             }`}
           >
-            <h1 className="text-2xl font-extrabold tracking-tight">
-              Create your Connestro account
+            <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              Create Account
             </h1>
-            <p className={`mt-1 text-sm ${darkMode ? "text-slate-400" : "text-slate-600"}`}>
-              Where connections grow stronger.
+            <p className={`mt-2 text-sm ${darkMode ? "text-slate-400" : "text-slate-600"}`}>
+              Join Connestro today
             </p>
           </div>
 
-          <form onSubmit={handleSignup} className="p-6 space-y-4">
+          <form onSubmit={handleSignup} className="p-6 sm:p-8 space-y-4">
+            {/* Name fields */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div className="space-y-1">
-                <label htmlFor="firstName" className="text-xs font-medium text-slate-500 dark:text-slate-400">
+              <div className="space-y-1.5">
+                <label htmlFor="firstName" className="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                   First name
                 </label>
-                <div className="relative">
-                  <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-slate-400">
-                    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.7 0 5-2.3 5-5s-2.3-5-5-5-5 2.3-5 5 2.3 5 5 5Zm0 2c-4 0-8 2-8 6v1h16v-1c0-4-4-6-8-6Z"/></svg>
+                <div className="relative group">
+                  <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-slate-400 group-focus-within:text-blue-500 transition-colors">
+                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
                   </span>
                   <input
                     id="firstName"
@@ -248,23 +254,25 @@ export default function Signup() {
                     value={formData.firstName}
                     onChange={handleChange}
                     placeholder="John"
-                    className={`w-full border pl-9 pr-3 py-2 rounded-lg transition-colors duration-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                    className={`w-full border-2 pl-10 pr-3 py-2.5 rounded-xl transition-all duration-200 focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 ${
                       darkMode
-                        ? "border-slate-700 bg-slate-800 text-slate-100 placeholder-slate-500"
-                        : "border-slate-300 bg-white text-slate-900 placeholder-slate-500"
+                        ? "border-slate-700 bg-slate-800/50 text-slate-100 placeholder-slate-500 hover:border-slate-600"
+                        : "border-slate-200 bg-white text-slate-900 placeholder-slate-400 hover:border-slate-300"
                     }`}
                     required
                   />
                 </div>
               </div>
 
-              <div className="space-y-1">
-                <label htmlFor="lastName" className="text-xs font-medium text-slate-500 dark:text-slate-400">
+              <div className="space-y-1.5">
+                <label htmlFor="lastName" className="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                   Last name
                 </label>
-                <div className="relative">
-                  <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-slate-400">
-                    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.7 0 5-2.3 5-5s-2.3-5-5-5-5 2.3-5 5 2.3 5 5 5Zm0 2c-4 0-8 2-8 6v1h16v-1c0-4-4-6-8-6Z"/></svg>
+                <div className="relative group">
+                  <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-slate-400 group-focus-within:text-blue-500 transition-colors">
+                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
                   </span>
                   <input
                     id="lastName"
@@ -272,10 +280,10 @@ export default function Signup() {
                     value={formData.lastName}
                     onChange={handleChange}
                     placeholder="Doe"
-                    className={`w-full border pl-9 pr-3 py-2 rounded-lg transition-colors duration-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                    className={`w-full border-2 pl-10 pr-3 py-2.5 rounded-xl transition-all duration-200 focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 ${
                       darkMode
-                        ? "border-slate-700 bg-slate-800 text-slate-100 placeholder-slate-500"
-                        : "border-slate-300 bg-white text-slate-900 placeholder-slate-500"
+                        ? "border-slate-700 bg-slate-800/50 text-slate-100 placeholder-slate-500 hover:border-slate-600"
+                        : "border-slate-200 bg-white text-slate-900 placeholder-slate-400 hover:border-slate-300"
                     }`}
                     required
                   />
@@ -283,8 +291,9 @@ export default function Signup() {
               </div>
             </div>
 
-            <div className="space-y-1">
-              <label htmlFor="gender" className="text-xs font-medium text-slate-500 dark:text-slate-400">
+            {/* Gender */}
+            <div className="space-y-1.5">
+              <label htmlFor="gender" className="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                 Gender
               </label>
               <select
@@ -292,10 +301,10 @@ export default function Signup() {
                 name="gender"
                 value={formData.gender}
                 onChange={handleChange}
-                className={`w-full border px-3 py-2 rounded-lg transition-colors duration-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                className={`w-full border-2 px-3 py-2.5 rounded-xl transition-all duration-200 focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 ${
                   darkMode
-                    ? "border-slate-700 bg-slate-800 text-slate-100"
-                    : "border-slate-300 bg-white text-slate-900"
+                    ? "border-slate-700 bg-slate-800/50 text-slate-100 hover:border-slate-600"
+                    : "border-slate-200 bg-white text-slate-900 hover:border-slate-300"
                 }`}
                 required
               >
@@ -305,13 +314,17 @@ export default function Signup() {
               </select>
             </div>
 
-            <div className="space-y-1">
-              <label htmlFor="place" className="text-xs font-medium text-slate-500 dark:text-slate-400">
+            {/* Place */}
+            <div className="space-y-1.5">
+              <label htmlFor="place" className="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                 Place
               </label>
-              <div className="relative">
-                <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-slate-400">
-                  <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7Zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5Z"/></svg>
+              <div className="relative group">
+                <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-slate-400 group-focus-within:text-blue-500 transition-colors">
+                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
                 </span>
                 <input
                   id="place"
@@ -320,11 +333,11 @@ export default function Signup() {
                   onChange={handleChange}
                   placeholder="City, Country"
                   maxLength={100}
-                  className={`w-full border pl-9 pr-3 py-2 rounded-lg transition-colors duration-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                  className={`w-full border-2 pl-10 pr-3 py-2.5 rounded-xl transition-all duration-200 focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 ${
                     darkMode
-                      ? "border-slate-700 bg-slate-800 text-slate-100 placeholder-slate-500"
-                      : "border-slate-300 bg-white text-slate-900 placeholder-slate-500"
-                  } ${showPlaceRules ? "border-amber-500" : ""}`}
+                      ? "border-slate-700 bg-slate-800/50 text-slate-100 placeholder-slate-500 hover:border-slate-600"
+                      : "border-slate-200 bg-white text-slate-900 placeholder-slate-400 hover:border-slate-300"
+                  } ${showPlaceRules ? "border-amber-500 focus:border-amber-500" : ""}`}
                   required
                 />
               </div>
@@ -332,26 +345,31 @@ export default function Signup() {
 
             {showPlaceRules && (
               <div
-                className={`text-xs rounded-lg p-3 ${
-                  darkMode ? "bg-slate-800 text-slate-200" : "bg-amber-50 text-slate-700"
+                className={`text-xs rounded-xl p-3 border ${
+                  darkMode 
+                    ? "bg-amber-900/20 border-amber-800/30 text-amber-200" 
+                    : "bg-amber-50 border-amber-200 text-amber-900"
                 }`}
               >
-                <p className="font-medium mb-2">Place must be:</p>
-                <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1">
+                <p className="font-semibold mb-2">Place requirements:</p>
+                <ul className="space-y-1">
                   {checkItem(placeChecks.min2, "At least 2 characters")}
-                  {checkItem(placeChecks.allowed, "Letters, spaces, commas, periods, ' and -")}
-                  {checkItem(placeChecks.max100, "Max 100 characters")}
+                  {checkItem(placeChecks.allowed, "Letters, spaces, commas, periods, apostrophes and hyphens only")}
+                  {checkItem(placeChecks.max100, "Maximum 100 characters")}
                 </ul>
               </div>
             )}
 
-            <div className="space-y-1">
-              <label htmlFor="dob" className="text-xs font-medium text-slate-500 dark:text-slate-400">
+            {/* Date of Birth - Fixed for mobile */}
+            <div className="space-y-1.5">
+              <label htmlFor="dob" className="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                 Date of birth
               </label>
-              <div className="relative">
-                <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-slate-400">
-                  <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor"><path d="M7 2h2v2h6V2h2v2h3v18H4V4h3V2Zm13 6H4v12h16V8Z"/></svg>
+              <div className="relative group">
+                <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-slate-400 group-focus-within:text-blue-500 transition-colors">
+                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
                 </span>
                 <input
                   type="date"
@@ -359,11 +377,17 @@ export default function Signup() {
                   name="dob"
                   value={formData.dob}
                   onChange={handleChange}
-                  className={`w-full border pl-9 pr-3 py-2 rounded-lg transition-colors duration-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                  inputMode="numeric"
+                  pattern="\d{4}-\d{2}-\d{2}"
+                  className={`w-full border-2 pl-10 pr-3 py-2.5 rounded-xl transition-all duration-200 focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 appearance-none ${
                     darkMode
-                      ? "border-slate-700 bg-slate-800 text-slate-100"
-                      : "border-slate-300 bg-white text-slate-900"
-                  } ${showDobRules ? "border-amber-500" : ""}`}
+                      ? "border-slate-700 bg-slate-800/50 text-slate-100 hover:border-slate-600 [color-scheme:dark]"
+                      : "border-slate-200 bg-white text-slate-900 hover:border-slate-300"
+                  } ${showDobRules ? "border-amber-500 focus:border-amber-500" : ""}`}
+                  style={{ 
+                    WebkitAppearance: 'none',
+                    MozAppearance: 'textfield'
+                  }}
                   required
                 />
               </div>
@@ -371,26 +395,31 @@ export default function Signup() {
 
             {showDobRules && (
               <div
-                className={`text-xs rounded-lg p-3 ${
-                  darkMode ? "bg-slate-800 text-slate-200" : "bg-amber-50 text-slate-700"
+                className={`text-xs rounded-xl p-3 border ${
+                  darkMode 
+                    ? "bg-amber-900/20 border-amber-800/30 text-amber-200" 
+                    : "bg-amber-50 border-amber-200 text-amber-900"
                 }`}
               >
-                <p className="font-medium mb-2">DOB must be:</p>
-                <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1">
-                  {checkItem(dobChecks.valid, "A valid date")}
-                  {checkItem(dobChecks.notFuture, "Not in the future")}
-                  {checkItem(dobChecks.age13, "Age 13+")}
+                <p className="font-semibold mb-2">Date of birth requirements:</p>
+                <ul className="space-y-1">
+                  {checkItem(dobChecks.valid, "Must be a valid date")}
+                  {checkItem(dobChecks.notFuture, "Cannot be in the future")}
+                  {checkItem(dobChecks.age13, "Must be 13 years or older")}
                 </ul>
               </div>
             )}
 
-            <div className="space-y-1">
-              <label htmlFor="email" className="text-xs font-medium text-slate-500 dark:text-slate-400">
-                Email
+            {/* Email */}
+            <div className="space-y-1.5">
+              <label htmlFor="email" className="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                Email address
               </label>
-              <div className="relative">
-                <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-slate-400">
-                  <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor"><path d="M20 4H4a2 2 0 0 0-2 2v1.2l10 5.8 10-5.8V6a2 2 0 0 0-2-2Zm0 6.4-8 4.6-8-4.6V18a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-7.6Z"/></svg>
+              <div className="relative group">
+                <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-slate-400 group-focus-within:text-blue-500 transition-colors">
+                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  </svg>
                 </span>
                 <input
                   type="email"
@@ -399,28 +428,36 @@ export default function Signup() {
                   value={formData.email}
                   onChange={handleChange}
                   placeholder="you@example.com"
-                  className={`w-full border pl-9 pr-3 py-2 rounded-lg transition-colors duration-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                  autoComplete="email"
+                  inputMode="email"
+                  className={`w-full border-2 pl-10 pr-3 py-2.5 rounded-xl transition-all duration-200 focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 ${
                     darkMode
-                      ? "border-slate-700 bg-slate-800 text-slate-100 placeholder-slate-500"
-                      : "border-slate-300 bg-white text-slate-900 placeholder-slate-500"
-                  } ${emailValid ? "" : "border-red-500"}`}
+                      ? "border-slate-700 bg-slate-800/50 text-slate-100 placeholder-slate-500 hover:border-slate-600"
+                      : "border-slate-200 bg-white text-slate-900 placeholder-slate-400 hover:border-slate-300"
+                  } ${!emailValid && formData.email ? "border-red-500 focus:border-red-500 focus:ring-red-500/20" : ""}`}
                   required
                 />
               </div>
-              {!emailValid && (
-                <p className="text-xs text-red-500 mt-1">
-                  Please enter a valid email address.
+              {!emailValid && formData.email && (
+                <p className="text-xs text-red-500 mt-1 flex items-center gap-1">
+                  <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                  </svg>
+                  Please enter a valid email address
                 </p>
               )}
             </div>
 
-            <div className="space-y-1">
-              <label htmlFor="password" className="text-xs font-medium text-slate-500 dark:text-slate-400">
+            {/* Password */}
+            <div className="space-y-1.5">
+              <label htmlFor="password" className="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                 Password
               </label>
-              <div className="relative">
-                <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-slate-400">
-                  <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor"><path d="M17 8V7a5 5 0 1 0-10 0v1H5v14h14V8h-2ZM9 7a3 3 0 1 1 6 0v1H9V7Z"/></svg>
+              <div className="relative group">
+                <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-slate-400 group-focus-within:text-blue-500 transition-colors">
+                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                  </svg>
                 </span>
                 <input
                   type="password"
@@ -428,39 +465,48 @@ export default function Signup() {
                   name="password"
                   value={formData.password}
                   onChange={handleChange}
-                  placeholder="••••••••"
-                  className={`w-full border pl-9 pr-3 py-2 rounded-lg transition-colors duration-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                  placeholder="Enter strong password"
+                  autoComplete="new-password"
+                  className={`w-full border-2 pl-10 pr-3 py-2.5 rounded-xl transition-all duration-200 focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 ${
                     darkMode
-                      ? "border-slate-700 bg-slate-800 text-slate-100 placeholder-slate-500"
-                      : "border-slate-300 bg-white text-slate-900 placeholder-slate-500"
+                      ? "border-slate-700 bg-slate-800/50 text-slate-100 placeholder-slate-500 hover:border-slate-600"
+                      : "border-slate-200 bg-white text-slate-900 placeholder-slate-400 hover:border-slate-300"
                   }`}
                   required
                 />
               </div>
 
-              {/* Visual strength bar (derived from existing checks) */}
+              {/* Password strength indicator */}
               {formData.password && (
-                <div className="mt-2">
-                  <div className={`h-1.5 rounded-full ${darkMode ? "bg-slate-800" : "bg-slate-200"}`}>
-                    <div
-                      className={`h-1.5 rounded-full transition-all duration-300 ${strengthColor}`}
-                      style={{ width: `${strengthPct}%` }}
-                    />
+                <div className="mt-2 space-y-1">
+                  <div className="flex items-center gap-2">
+                    <div className={`flex-1 h-2 rounded-full overflow-hidden ${darkMode ? "bg-slate-800" : "bg-slate-200"}`}>
+                      <div
+                        className={`h-full rounded-full transition-all duration-500 ${strengthColor}`}
+                        style={{ width: `${strengthPct}%` }}
+                      />
+                    </div>
+                    <span className={`text-xs font-medium ${
+                      strengthCount <= 2 ? "text-red-500" : 
+                      strengthCount <= 4 ? "text-amber-500" : "text-emerald-500"
+                    }`}>
+                      {strengthLabel}
+                    </span>
                   </div>
-                  <p className={`mt-1 text-xs ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
-                    Strength: {strengthLabel}
-                  </p>
                 </div>
               )}
             </div>
 
-            <div className="space-y-1">
-              <label htmlFor="confirmPassword" className="text-xs font-medium text-slate-500 dark:text-slate-400">
+            {/* Confirm Password */}
+            <div className="space-y-1.5">
+              <label htmlFor="confirmPassword" className="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                 Confirm password
               </label>
-              <div className="relative">
-                <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-slate-400">
-                  <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor"><path d="M17 8V7a5 5 0 1 0-10 0v1H5v14h14V8h-2ZM9 7a3 3 0 1 1 6 0v1H9V7Z"/></svg>
+              <div className="relative group">
+                <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-slate-400 group-focus-within:text-blue-500 transition-colors">
+                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                  </svg>
                 </span>
                 <input
                   type="password"
@@ -468,84 +514,99 @@ export default function Signup() {
                   name="confirmPassword"
                   value={formData.confirmPassword}
                   onChange={handleChange}
-                  placeholder="••••••••"
-                  className={`w-full border pl-9 pr-3 py-2 rounded-lg transition-colors duration-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                  placeholder="Re-enter password"
+                  autoComplete="new-password"
+                  className={`w-full border-2 pl-10 pr-3 py-2.5 rounded-xl transition-all duration-200 focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 ${
                     darkMode
-                      ? "border-slate-700 bg-slate-800 text-slate-100 placeholder-slate-500"
-                      : "border-slate-300 bg-white text-slate-900 placeholder-slate-500"
+                      ? "border-slate-700 bg-slate-800/50 text-slate-100 placeholder-slate-500 hover:border-slate-600"
+                      : "border-slate-200 bg-white text-slate-900 placeholder-slate-400 hover:border-slate-300"
                   } ${
                     formData.confirmPassword && formData.password !== formData.confirmPassword
-                      ? "border-red-500"
+                      ? "border-red-500 focus:border-red-500 focus:ring-red-500/20"
                       : ""
                   }`}
                   required
                 />
               </div>
-              {formData.confirmPassword &&
-                formData.password !== formData.confirmPassword && (
-                  <p className="text-xs text-red-500 mt-1">Passwords do not match.</p>
-                )}
+              {formData.confirmPassword && formData.password !== formData.confirmPassword && (
+                <p className="text-xs text-red-500 mt-1 flex items-center gap-1">
+                  <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                  </svg>
+                  Passwords do not match
+                </p>
+              )}
             </div>
 
             {showPasswordRules && (
               <div
-                className={`text-xs rounded-lg p-3 ${
-                  darkMode ? "bg-slate-800 text-slate-200" : "bg-slate-50 text-slate-700"
+                className={`text-xs rounded-xl p-3 border ${
+                  darkMode 
+                    ? "bg-blue-900/20 border-blue-800/30 text-blue-200" 
+                    : "bg-blue-50 border-blue-200 text-blue-900"
                 }`}
               >
-                <p className="font-medium mb-2">Password must contain:</p>
+                <p className="font-semibold mb-2">Password must contain:</p>
                 <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1">
-                  {checkItem(passwordChecks.length, "At least 8 characters")}
-                  {checkItem(passwordChecks.upper, "An uppercase letter (A-Z)")}
-                  {checkItem(passwordChecks.lower, "A lowercase letter (a-z)")}
-                  {checkItem(passwordChecks.number, "A number (0-9)")}
-                  {checkItem(passwordChecks.symbol, "A special character (!@#$...)")}
+                  {checkItem(passwordChecks.length, "8+ characters")}
+                  {checkItem(passwordChecks.upper, "Uppercase (A-Z)")}
+                  {checkItem(passwordChecks.lower, "Lowercase (a-z)")}
+                  {checkItem(passwordChecks.number, "Number (0-9)")}
+                  {checkItem(passwordChecks.symbol, "Special (!@#$...)")}
                 </ul>
               </div>
             )}
 
-            <label className="flex items-start space-x-2 text-sm">
+            {/* Terms checkbox */}
+            <label className="flex items-start space-x-3 py-2 cursor-pointer group">
               <input
                 type="checkbox"
                 name="acceptTerms"
                 checked={formData.acceptTerms}
                 onChange={handleChange}
-                className="mt-1 h-4 w-4 rounded border-slate-300"
+                className="mt-1 h-4 w-4 rounded border-2 border-slate-300 text-blue-600 focus:ring-2 focus:ring-blue-500 cursor-pointer"
                 required
               />
-              <span className={`${darkMode ? "text-slate-300" : "text-slate-700"}`}>
+              <span className={`text-sm leading-relaxed ${darkMode ? "text-slate-300" : "text-slate-700"}`}>
                 I agree to the{" "}
-                <Link to="/terms#terms" className="text-blue-600 hover:underline">
+                <Link to="/terms#terms" className="text-blue-600 hover:text-blue-700 hover:underline font-medium">
                   Terms & Conditions
                 </Link>{" "}
                 and{" "}
-                <Link to="/terms#privacy" className="text-blue-600 hover:underline">
+                <Link to="/terms#privacy" className="text-blue-600 hover:text-blue-700 hover:underline font-medium">
                   Privacy Policy
                 </Link>
-                .
               </span>
             </label>
 
+            {/* Submit button */}
             <button
               type="submit"
               disabled={!canSubmit}
-              className={`w-full px-4 py-2 rounded-lg font-medium transition-colors duration-200 ${
+              className={`relative w-full px-6 py-3 rounded-xl font-semibold text-white transition-all duration-200 transform ${
                 canSubmit
-                  ? "bg-blue-600 text-white hover:bg-blue-700"
-                  : "bg-slate-400 text-white cursor-not-allowed"
+                  ? "bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 hover:scale-[1.02] hover:shadow-lg active:scale-[0.98]"
+                  : "bg-slate-400 cursor-not-allowed opacity-60"
               }`}
             >
-              Create account
+              <span className="relative z-10">Create Account</span>
+              {canSubmit && (
+                <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 blur opacity-50 group-hover:opacity-70 transition-opacity" />
+              )}
             </button>
 
+            {/* Login link */}
             <p
-              className={`text-center text-sm pt-1 ${
+              className={`text-center text-sm pt-2 ${
                 darkMode ? "text-slate-400" : "text-slate-600"
               }`}
             >
               Already have an account?{" "}
-              <Link className="text-blue-600 hover:underline" to="/login">
-                Log in
+              <Link 
+                className="text-blue-600 hover:text-blue-700 font-semibold hover:underline transition-colors" 
+                to="/login"
+              >
+                Sign in
               </Link>
             </p>
           </form>

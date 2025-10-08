@@ -143,9 +143,10 @@ export function AppProvider({ children }) {
       timeout: 15000,
     });
 
-    newSocket.on("connect", () =>
-      console.log("✅ Socket connected:", newSocket.id)
-    );
+    newSocket.on("connect", () => {
+      // Connected, no log
+    });
+
     newSocket.on("connect_error", (err) =>
       console.error("❌ Socket connect error:", err?.message || err)
     );
@@ -196,7 +197,9 @@ export function AppProvider({ children }) {
       await markNotificationRead(id);
       setNotifications((prev) =>
         prev.map((n) =>
-          n._id === id ? { ...n, read: true, readAt: new Date().toISOString() } : n
+          n._id === id
+            ? { ...n, read: true, readAt: new Date().toISOString() }
+            : n
         )
       );
       setNotifUnread((c) => Math.max(0, c - 1));
@@ -209,7 +212,11 @@ export function AppProvider({ children }) {
     try {
       await markAllNotificationsRead();
       setNotifications((prev) =>
-        prev.map((n) => ({ ...n, read: true, readAt: new Date().toISOString() }))
+        prev.map((n) => ({
+          ...n,
+          read: true,
+          readAt: new Date().toISOString(),
+        }))
       );
       setNotifUnread(0);
     } catch (e) {
@@ -325,7 +332,9 @@ export function AppProvider({ children }) {
       updateFollow(userId, currentUserId, follow);
 
     const handleEnhancedProfileUpdate = (payload) => {
-      const currentUserId = JSON.parse(localStorage.getItem("user") || "{}")?.id;
+      const currentUserId = JSON.parse(
+        localStorage.getItem("user") || "{}"
+      )?.id;
       const raw = payload?.updatedUser || payload;
       if (!raw) return;
       const updatedUser = { ...raw, _id: raw._id || raw.id };
@@ -349,13 +358,17 @@ export function AppProvider({ children }) {
 
       setPosts((prev) =>
         prev
-          .filter((p) => String(p.user?._id || p.user) !== String(deletedUserId))
+          .filter(
+            (p) => String(p.user?._id || p.user) !== String(deletedUserId)
+          )
           .map((p) => {
             const comments = Array.isArray(p.comments)
               ? p.comments.map((c) => {
                   const replies = Array.isArray(c.replies)
                     ? c.replies.filter(
-                        (r) => String(r.user?._id || r.user) !== String(deletedUserId)
+                        (r) =>
+                          String(r.user?._id || r.user) !==
+                          String(deletedUserId)
                       )
                     : [];
                   return { ...c, replies };
@@ -423,8 +436,11 @@ export function AppProvider({ children }) {
                   String(c._id) === String(commentId)
                     ? {
                         ...c,
-                        replies: (Array.isArray(c.replies) ? c.replies : []).map(
-                          (r) => (String(r._id) === String(reply._id) ? reply : r)
+                        replies: (Array.isArray(c.replies)
+                          ? c.replies
+                          : []
+                        ).map((r) =>
+                          String(r._id) === String(reply._id) ? reply : r
                         ),
                       }
                     : c
