@@ -552,7 +552,7 @@ Add your license of choice (e.g., MIT).
 
 ---
 
-### 🎬 Reels
+### 🎬 Reel
 <p align="center">
   <img src="https://drive.google.com/uc?export=view&id=1jSrsQb8_67PyNUvz2KhEU5WfznRChlpz" width="45%" alt="Reel UI" />
   <img src="https://drive.google.com/uc?export=view&id=1fFLAfuUTHnRFF4M0vZvoyakwelE832UG" width="45%" alt="Reel Creation" />
