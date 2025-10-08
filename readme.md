@@ -15,7 +15,6 @@ Connestro is a full‑stack social platform with real‑time features, private m
 ## Table of Contents
 - Features
 - Tech Stack
-- Monorepo Layout
 - Quick Start
 - Environment Variables (Server + Client)
 - Development Scripts
@@ -29,7 +28,7 @@ Connestro is a full‑stack social platform with real‑time features, private m
 - Troubleshooting
 - Roadmap
 - License
-- Screenshots (optional)
+- Screenshots
 
 ---
 
