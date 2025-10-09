@@ -98,9 +98,10 @@ export default function Navbar() {
   // NEW: Story publish alerts toggle (null = not loaded yet)
   const [storyAlertsOn, setStoryAlertsOn] = useState(null);
 
-  // Refs for outside click
+  // Refs for outside click - SEPARATE REFS FOR DESKTOP AND MOBILE
   const searchRef = useRef(null);
-  const notifRef = useRef(null);
+  const notifRef = useRef(null); // Desktop notification
+  const mobileNotifRef = useRef(null); // Mobile notification
   const acctRef = useRef(null);
 
   // Load accounts, keep in sync
@@ -154,17 +155,15 @@ export default function Navbar() {
   };
 
   // Safer regex escape
-  const escapeRegex = (s) => String(s).replace(/[-[```{}()*+?.\\^$|]/g, "\\$&");
+  const escapeRegex = (s) => String(s).replace(/[-[```{}()*+?.,\\^$|]/g, "\\$&");
+  
   const highlightText = (text, query) => {
     if (!query) return text;
     const regex = new RegExp(`(${escapeRegex(query)})`, "ig");
     const parts = String(text).split(regex);
     return parts.map((part, i) =>
       regex.test(part) ? (
-        <span
-          key={i}
-          className="bg-yellow-300 dark:bg-yellow-600 font-semibold rounded px-0.5"
-        >
+        <span key={i} className="bg-yellow-300 dark:bg-yellow-600 font-semibold rounded px-0.5">
           {part}
         </span>
       ) : (
@@ -195,18 +194,35 @@ export default function Navbar() {
     return () => clearTimeout(handler);
   }, [searchTerm]);
 
-  // Close dropdowns when clicking outside
+  // FIXED: Close dropdowns when clicking outside - CHECKS BOTH DESKTOP AND MOBILE REFS
   useEffect(() => {
     const handleClickOutside = (e) => {
-      if (searchRef.current && !searchRef.current.contains(e.target))
+      // Search dropdown
+      if (searchRef.current && !searchRef.current.contains(e.target)) {
         setResults([]);
-      if (notifRef.current && !notifRef.current.contains(e.target))
+      }
+      
+      // Notification dropdowns (check both desktop and mobile)
+      const clickedInsideDesktopNotif = notifRef.current && notifRef.current.contains(e.target);
+      const clickedInsideMobileNotif = mobileNotifRef.current && mobileNotifRef.current.contains(e.target);
+      
+      if (!clickedInsideDesktopNotif && !clickedInsideMobileNotif) {
         setNotifOpen(false);
-      if (acctRef.current && !acctRef.current.contains(e.target))
+      }
+      
+      // Account dropdown
+      if (acctRef.current && !acctRef.current.contains(e.target)) {
         setAcctOpen(false);
+      }
     };
+    
     document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    document.addEventListener("touchstart", handleClickOutside);
+    
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("touchstart", handleClickOutside);
+    };
   }, []);
 
   // Close mobile menu when route changes
@@ -243,7 +259,7 @@ export default function Navbar() {
       case "reel_publish":
         return "posted a new reel";
       case "story_publish":
-        return "posted a new story"; // NEW
+        return "posted a new story";
       case "like":
         return isReel ? "liked your reel" : "liked your post";
       case "comment":
@@ -328,61 +344,56 @@ export default function Navbar() {
                 />
               </div>
         
-{searchTerm && (
-  <div className="absolute top-full mt-2 w-full bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 rounded-2xl shadow-2xl z-50 max-h-80 overflow-y-auto">
-    {loading ? (
-      <div className="px-4 py-3 text-gray-500 dark:text-gray-400 text-sm flex items-center justify-center">
-        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-500"></div>
-        <span className="ml-2">Searching...</span>
-      </div>
-    ) : results.length > 0 ? (
-      results.map((u) => {
-        const avatar = u.profileImage
-          ? buildFileUrl(u.profileImage)
-          : "/default-avatar.png";
-        return (
-          <div
-            key={u._id}
-            className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-all duration-200 border-b border-gray-100 dark:border-gray-700 last:border-b-0"
-            onMouseDown={(e) => {  
-              e.preventDefault();   
-              setResults([]);
-              setSearchTerm("");
-              navigate(`/profile/${u._id}`);
-            }}
-          >
-            <img
-              src={avatar}
-              alt={u.username}
-              className="w-10 h-10 rounded-full object-cover ring-2 ring-gray-200 dark:ring-gray-700"
-            />
-            <div className="flex-1">
-              <p className="font-medium text-gray-900 dark:text-gray-100">
-                {highlightText(
-                  `${u.firstName} ${u.lastName}`,
-                  searchTerm
-                )}
-              </p>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                @{highlightText(u.username, searchTerm)}
-              </p>
-              {u.place && (
-                <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
-                  📍 {highlightText(u.place, searchTerm)}
-                </p>
+              {searchTerm && (
+                <div className="absolute top-full mt-2 w-full bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 rounded-2xl shadow-2xl z-50 max-h-80 overflow-y-auto">
+                  {loading ? (
+                    <div className="px-4 py-3 text-gray-500 dark:text-gray-400 text-sm flex items-center justify-center">
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-500"></div>
+                      <span className="ml-2">Searching...</span>
+                    </div>
+                  ) : results.length > 0 ? (
+                    results.map((u) => {
+                      const avatar = u.profileImage ? buildFileUrl(u.profileImage) : "/default-avatar.png";
+                      return (
+                        <div
+                          key={u._id}
+                          className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-all duration-200 border-b border-gray-100 dark:border-gray-700 last:border-b-0"
+                          onMouseDown={(e) => {
+                            e.preventDefault();
+                            setResults([]);
+                            setSearchTerm("");
+                            navigate(`/profile/${u._id}`);
+                          }}
+                        >
+                          <img
+                            src={avatar}
+                            alt={u.username}
+                            className="w-10 h-10 rounded-full object-cover ring-2 ring-gray-200 dark:ring-gray-700"
+                          />
+                          <div className="flex-1">
+                            <p className="font-medium text-gray-900 dark:text-gray-100">
+                              {highlightText(`${u.firstName} ${u.lastName}`, searchTerm)}
+                            </p>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">
+                              @{highlightText(u.username, searchTerm)}
+                            </p>
+                            {u.place && (
+                              <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
+                                📍 {highlightText(u.place, searchTerm)}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })
+                  ) : (
+                    <div className="px-4 py-6 text-gray-500 dark:text-gray-400 text-center">
+                      <p className="text-lg mb-1">No users found</p>
+                      <p className="text-sm">Try a different search term</p>
+                    </div>
+                  )}
+                </div>
               )}
-            </div>
-          </div>
-        );
-      })
-    ) : (
-      <div className="px-4 py-6 text-gray-500 dark:text-gray-400 text-center">
-        <p className="text-lg mb-1">No users found</p>
-        <p className="text-sm">Try a different search term</p>
-      </div>
-    )}
-  </div>
-)}
             </div>
           )}
 
@@ -414,7 +425,7 @@ export default function Navbar() {
                   )}
                 </Link>
 
-                {/* Notifications Bell */}
+                {/* Desktop Notifications Bell */}
                 <div className="relative" ref={notifRef}>
                   <button
                     onClick={toggleNotif}
@@ -450,7 +461,7 @@ export default function Navbar() {
                           </div>
                         </div>
                         
-                        {/* Settings Controls */}
+                        {/* Desktop Settings Controls */}
                         <div className="grid grid-cols-2 gap-2">
                           <div className="flex items-center gap-2 bg-gray-50 dark:bg-gray-900/50 rounded-lg p-2">
                             <button
@@ -756,7 +767,7 @@ export default function Navbar() {
           <div className="md:hidden flex items-center gap-3">
             {user && (
               <>
-                {/* Mobile Notifications */}
+                {/* Mobile Notifications Bell */}
                 <button
                   onClick={toggleNotif}
                   className="relative p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800"
@@ -985,13 +996,19 @@ export default function Navbar() {
         </div>
       )}
 
-      {/* Mobile Notifications Panel */}
+      {/* Mobile Notifications Panel - SEPARATE REF */}
       {notifOpen && (
-        <div className="md:hidden fixed inset-0 top-16 bg-white dark:bg-gray-900 z-50 overflow-y-auto">
+        <div 
+          ref={mobileNotifRef}
+          className="md:hidden fixed inset-0 top-16 bg-white dark:bg-gray-900 z-50 overflow-y-auto"
+        >
           <div className="px-4 py-4">
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-bold text-lg">Notifications</h3>
-              <button onClick={() => setNotifOpen(false)} className="p-2">
+              <button 
+                onClick={() => setNotifOpen(false)} 
+                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
+              >
                 <IoClose className="text-2xl" />
               </button>
             </div>
@@ -999,7 +1016,10 @@ export default function Navbar() {
             {/* Mobile Notification Settings */}
             <div className="mb-4 space-y-3">
               <div className="flex items-center gap-2 bg-gray-50 dark:bg-gray-800 rounded-xl p-3">
-                <button onClick={() => toggleNotifSound()}>
+                <button 
+                  onClick={() => toggleNotifSound()}
+                  className="hover:bg-gray-200 dark:hover:bg-gray-700 p-2 rounded-full transition-colors"
+                >
                   {notifSoundEnabled ? <IoVolumeMedium className="text-xl" /> : <IoVolumeMute className="text-xl" />}
                 </button>
                 <input
@@ -1011,13 +1031,13 @@ export default function Navbar() {
                   onChange={(e) => setNotifSoundVolume(Number(e.target.value))}
                   className="flex-1"
                 />
-                <span className="text-sm">{Math.round(notifSoundVolume * 100)}%</span>
+                <span className="text-sm w-12 text-right">{Math.round(notifSoundVolume * 100)}%</span>
               </div>
 
               <div className="grid grid-cols-2 gap-2">
                 <button
-                  className={`px-3 py-2 rounded-xl text-sm font-medium ${
-                    reelAlertsOn ? "bg-green-100 text-green-600" : "bg-gray-100"
+                  className={`px-3 py-2 rounded-xl text-sm font-medium transition-all ${
+                    reelAlertsOn ? "bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400" : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400"
                   }`}
                   onClick={async () => {
                     if (reelAlertsOn === null) return;
@@ -1025,17 +1045,19 @@ export default function Navbar() {
                     setReelAlertsOn(next);
                     try {
                       await updateNotificationSettings({ reelPublish: next });
-                    } catch (e) {
+                    } catch (err) {
                       setReelAlertsOn(!next);
+                      console.error("Failed to update reel alert setting", err);
                     }
                   }}
+                  disabled={reelAlertsOn === null}
                 >
-                  Reel Alerts: {reelAlertsOn ? "ON" : "OFF"}
+                  Reel Alerts: {reelAlertsOn === null ? "..." : reelAlertsOn ? "ON" : "OFF"}
                 </button>
                 
                 <button
-                  className={`px-3 py-2 rounded-xl text-sm font-medium ${
-                    storyAlertsOn ? "bg-green-100 text-green-600" : "bg-gray-100"
+                  className={`px-3 py-2 rounded-xl text-sm font-medium transition-all ${
+                    storyAlertsOn ? "bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400" : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400"
                   }`}
                   onClick={async () => {
                     if (storyAlertsOn === null) return;
@@ -1043,24 +1065,26 @@ export default function Navbar() {
                     setStoryAlertsOn(next);
                     try {
                       await updateNotificationSettings({ storyPublish: next });
-                    } catch (e) {
+                    } catch (err) {
                       setStoryAlertsOn(!next);
+                      console.error("Failed to update story alert setting", err);
                     }
                   }}
+                  disabled={storyAlertsOn === null}
                 >
-                  Story Alerts: {storyAlertsOn ? "ON" : "OFF"}
+                  Story Alerts: {storyAlertsOn === null ? "..." : storyAlertsOn ? "ON" : "OFF"}
                 </button>
               </div>
 
               <div className="flex gap-2">
                 <button
-                  className="flex-1 px-3 py-2 rounded-xl bg-blue-100 text-blue-600 text-sm font-medium"
+                  className="flex-1 px-3 py-2 rounded-xl bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-sm font-medium hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-colors"
                   onClick={() => markAllNotifsRead().catch(() => {})}
                 >
                   Mark all read
                 </button>
                 <button
-                  className="flex-1 px-3 py-2 rounded-xl bg-red-100 text-red-600 text-sm font-medium"
+                  className="flex-1 px-3 py-2 rounded-xl bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 text-sm font-medium hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors"
                   onClick={() => clearAllNotifs().catch(() => {})}
                 >
                   Clear all
@@ -1072,8 +1096,8 @@ export default function Navbar() {
             <div className="space-y-2">
               {notifications.length === 0 ? (
                 <div className="text-center py-8">
-                  <IoNotificationsOutline className="text-5xl text-gray-300 mx-auto mb-2" />
-                  <p className="text-gray-500">No notifications yet</p>
+                  <IoNotificationsOutline className="text-5xl text-gray-300 dark:text-gray-600 mx-auto mb-2" />
+                  <p className="text-gray-500 dark:text-gray-400">No notifications yet</p>
                 </div>
               ) : (
                 notifications.slice(0, 10).map((n) => {
@@ -1084,14 +1108,14 @@ export default function Navbar() {
                   return (
                     <div
                       key={n._id}
-                      className={`flex items-start gap-3 p-3 rounded-xl ${
+                      className={`flex items-start gap-3 p-3 rounded-xl transition-colors ${
                         !n.read ? "bg-blue-50 dark:bg-blue-900/10" : "bg-gray-50 dark:bg-gray-800"
                       }`}
                     >
                       <img
                         src={avatar}
                         alt=""
-                        className="w-10 h-10 rounded-full object-cover"
+                        className="w-10 h-10 rounded-full object-cover ring-2 ring-gray-200 dark:ring-gray-700"
                         onClick={() => {
                           if (!n.read) markNotifRead(n._id).catch(() => {});
                           if (n.actor?._id) navigate(`/profile/${n.actor._id}`);
@@ -1108,9 +1132,9 @@ export default function Navbar() {
                           }}
                         >
                           <p className="text-sm">
-                            <span className="font-semibold">@{n.actor?.username}</span> {label}
+                            <span className="font-semibold">@{n.actor?.username || "user"}</span> {label}
                           </p>
-                          <p className="text-xs text-gray-500 mt-0.5">
+                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                             {new Date(n.createdAt).toLocaleString()}
                           </p>
                         </button>
@@ -1118,14 +1142,14 @@ export default function Navbar() {
                       <div className="flex gap-1">
                         {!n.read && (
                           <button
-                            className="p-1.5 text-green-600"
+                            className="p-1.5 text-green-600 hover:bg-green-100 dark:hover:bg-green-900/30 rounded-full transition-colors"
                             onClick={() => markNotifRead(n._id).catch(() => {})}
                           >
                             <IoCheckmarkDoneSharp />
                           </button>
                         )}
                         <button
-                          className="p-1.5 text-gray-500"
+                          className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-full transition-colors"
                           onClick={() => deleteNotif(n._id).catch(() => {})}
                         >
                           <IoClose />
@@ -1138,7 +1162,7 @@ export default function Navbar() {
             </div>
 
             <button
-              className="w-full mt-4 px-4 py-3 rounded-xl bg-gray-100 dark:bg-gray-800 font-medium"
+              className="w-full mt-4 px-4 py-3 rounded-xl bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 font-medium transition-colors"
               onClick={() => {
                 setNotifOpen(false);
                 navigate("/notifications");
