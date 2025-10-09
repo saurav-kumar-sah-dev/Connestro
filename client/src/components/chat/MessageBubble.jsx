@@ -143,15 +143,13 @@ export default function MessageBubble({ msg, meId, otherId }) {
     while ((m = urlRe.exec(str)) !== null) {
       const start = m.index;
       const token = m[0];
-      if (start > last)
-        parts.push(<span key={`t-${last}`}>{str.slice(last, start)}</span>);
+      if (start > last) parts.push(<span key={`t-${last}`}>{str.slice(last, start)}</span>);
       const isAbsolute = /^https?:\/\//i.test(token);
       const sameOriginInternal = (() => {
         try {
           if (!isAbsolute) return null;
           const u = new URL(token);
-          const same =
-            typeof window !== "undefined" && u.origin === window.location.origin;
+          const same = typeof window !== "undefined" && u.origin === window.location.origin;
           const mReel = u.pathname.match(/^\/reels\/([0-9a-fA-F]{24})$/);
           const mPost = u.pathname.match(/^\/post\/([0-9a-fA-F]{24})$/);
           if (same && mReel) return `/reels/${mReel[1]}`;
@@ -164,11 +162,7 @@ export default function MessageBubble({ msg, meId, otherId }) {
       if (sameOriginInternal || (!isAbsolute && /^\/(reels|post)\/[0-9a-fA-F]{24}$/.test(token))) {
         const to = sameOriginInternal || token;
         parts.push(
-          <Link
-            key={`l-${start}`}
-            to={to}
-            className="underline text-blue-100 dark:text-blue-300 md:text-blue-700"
-          >
+          <Link key={`l-${start}`} to={to} className="underline text-blue-100 dark:text-blue-300 md:text-blue-700">
             {token}
           </Link>
         );
@@ -189,16 +183,13 @@ export default function MessageBubble({ msg, meId, otherId }) {
       }
       last = start + token.length;
     }
-    if (last < str.length)
-      parts.push(<span key={`t-end`}>{str.slice(last)}</span>);
+    if (last < str.length) parts.push(<span key={`t-end`}>{str.slice(last)}</span>);
     return parts;
   };
 
   return (
     <div
-      className={`flex ${
-        isMine ? "justify-end" : "justify-start"
-      } px-2 sm:px-4 py-1`}
+      className={`flex ${isMine ? "justify-end" : "justify-start"} px-2 sm:px-4 py-1`}
       onMouseLeave={() => setMenuOpen(false)}
     >
       <div className="relative group">
@@ -247,18 +238,9 @@ export default function MessageBubble({ msg, meId, otherId }) {
                             className="max-h-64 rounded-md w-full object-contain shadow-sm"
                           />
                         ) : a.type === "video" ? (
-                          <video
-                            src={src}
-                            controls
-                            className="max-h-64 rounded-md w-full shadow-sm"
-                          />
+                          <video src={src} controls className="max-h-64 rounded-md w-full shadow-sm" />
                         ) : (
-                          <a
-                            className="underline text-sm break-all"
-                            href={src}
-                            target="_blank"
-                            rel="noreferrer"
-                          >
+                          <a className="underline text-sm break-all" href={src} target="_blank" rel="noreferrer">
                             {a.name || "File"}
                           </a>
                         )}
@@ -292,9 +274,9 @@ export default function MessageBubble({ msg, meId, otherId }) {
 
         {/* Responsive, modern menu */}
         {!isCall && !msg.isDeleted && !editing && (
-          <div className="absolute -top-3 right-0">
+          <div className={`absolute -top-3 ${isMine ? "right-0" : "left-0"}`}>
             <button
-              className={`text-lg w-8 h-8 md:w-7 md:h-7 rounded-full flex items-center justify-center shadow border backdrop-blur-sm transition-colors duration-150 ${
+              className={`text-lg w-9 h-9 sm:w-7 sm:h-7 rounded-full flex items-center justify-center shadow-md border backdrop-blur-sm transition-colors duration-150 ${
                 isMine
                   ? "bg-white text-blue-600 hover:bg-slate-100 border-slate-300"
                   : "bg-slate-100 text-slate-700 hover:bg-slate-200 border-slate-300 dark:bg-slate-700 dark:text-slate-100 dark:hover:bg-slate-600"
@@ -306,7 +288,9 @@ export default function MessageBubble({ msg, meId, otherId }) {
             </button>
 
             {menuOpen && (
-              <div className="absolute right-0 mt-2 w-48 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-xl text-sm z-20 overflow-hidden animate-fadeIn">
+              <div
+                className={`absolute ${isMine ? "right-0" : "left-0"} mt-2 w-56 max-w-[calc(100vw-3rem)] rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-2xl text-sm z-50 overflow-hidden animate-fadeIn`}
+              >
                 {isMine && (
                   <button
                     className="block w-full text-left px-4 py-2.5 text-slate-800 dark:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"

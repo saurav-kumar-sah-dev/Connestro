@@ -7,6 +7,7 @@ import { AppContext } from "../../context/AppContext";
 import { useTheme } from "../../context/ThemeContext";
 import MessageBubble from "./MessageBubble";
 import { buildFileUrl } from "../../utils/url";
+import { IoArrowBack, IoCall, IoVideocam, IoAttach, IoSend, IoTrash } from "react-icons/io5";
 
 function getVisibleStatus(status, ownerId, viewerId) {
   if (!status || (!status.text && !status.emoji)) return null;
@@ -18,41 +19,41 @@ function getVisibleStatus(status, ownerId, viewerId) {
 }
 
 const styles = {
-  root: "flex flex-col flex-1 transition-colors duration-300",
+  root: "flex flex-col h-full w-full overflow-hidden transition-colors duration-300",
   rootLight: "bg-white",
   rootDark: "bg-slate-900",
 
   header:
-    "px-3 sm:px-4 md:px-5 py-2.5 sm:py-3 border-b sticky top-0 z-10 transition-colors duration-300",
+    "px-3 sm:px-4 md:px-5 py-2.5 sm:py-3 border-b flex-shrink-0 transition-colors duration-300",
   headerLight: "bg-white border-slate-200",
   headerDark: "bg-slate-900 border-slate-800",
 
-  headerRow: "flex items-center gap-3",
+  headerRow: "flex items-center gap-2 sm:gap-3",
 
   closeBtn:
-    "shrink-0 inline-flex items-center gap-2 px-2.5 py-1.5 rounded-lg border text-sm font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-0",
+    "shrink-0 p-2 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-0",
   closeBtnLight:
-    "border-slate-300 bg-white text-slate-700 hover:bg-slate-50 focus:ring-blue-500",
+    "text-slate-700 hover:bg-slate-100 focus:ring-blue-500",
   closeBtnDark:
-    "border-slate-700 bg-slate-800 text-slate-200 hover:bg-slate-700 focus:ring-blue-400",
+    "text-slate-200 hover:bg-slate-800 focus:ring-blue-400",
 
-  avatarWrap: "relative",
-  avatarImg: "w-10 h-10 rounded-full object-cover ring-1",
+  avatarWrap: "relative shrink-0",
+  avatarImg: "w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover ring-2 shadow-sm",
   avatarLight: "ring-slate-200",
   avatarDark: "ring-slate-800",
 
-  onlineDot: "absolute bottom-0 right-0 w-3 h-3 rounded-full border",
+  onlineDot: "absolute bottom-0 right-0 w-3 h-3 rounded-full border-2",
   onlineDotLight: "border-white",
   onlineDotDark: "border-slate-900",
   onlineColor: "bg-emerald-500",
   offlineColor: "bg-slate-400",
 
   nameWrap: "flex-1 min-w-0",
-  name: "font-semibold truncate",
+  name: "font-semibold text-sm sm:text-base truncate flex items-center gap-1",
   nameLight: "text-slate-900",
   nameDark: "text-slate-100",
 
-  username: "truncate",
+  username: "text-xs sm:text-sm truncate",
   usernameLight: "text-slate-500",
   usernameDark: "text-slate-400",
 
@@ -64,58 +65,59 @@ const styles = {
   metaLight: "text-slate-500",
   metaDark: "text-slate-400",
 
-  actions: "flex items-center gap-2",
+  actions: "flex items-center gap-1 sm:gap-2 shrink-0",
   actionBtn:
-    "px-3 py-1.5 rounded-lg border text-sm font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-0",
+    "p-2 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-0",
   actionBtnLight:
-    "border-slate-300 bg-white text-slate-700 hover:bg-slate-50 focus:ring-blue-500",
+    "text-slate-700 hover:bg-slate-100 focus:ring-blue-500",
   actionBtnDark:
-    "border-slate-700 bg-slate-800 text-slate-200 hover:bg-slate-700 focus:ring-blue-400",
+    "text-slate-200 hover:bg-slate-800 focus:ring-blue-400",
 
   dangerBtn:
-    "px-3 py-1.5 rounded-lg border text-sm font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-0",
+    "p-2 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-0",
   dangerBtnLight:
-    "border-rose-300 text-rose-600 hover:bg-rose-50 focus:ring-rose-400",
+    "text-rose-600 hover:bg-rose-50 focus:ring-rose-400",
   dangerBtnDark:
-    "border-rose-900/40 text-rose-300 hover:bg-rose-900/20 focus:ring-rose-500",
+    "text-rose-300 hover:bg-rose-900/20 focus:ring-rose-500",
 
   messages: "flex-1 overflow-y-auto p-3 sm:p-4 md:p-5 space-y-2 transition-colors duration-300",
-  messagesLight: "bg-slate-50",
-  messagesDark: "bg-slate-950",
+  messagesLight: "bg-gradient-to-b from-slate-50 to-white",
+  messagesDark: "bg-gradient-to-b from-slate-950 to-slate-900",
 
   empty: "text-center py-8",
   emptyLight: "text-slate-400",
   emptyDark: "text-slate-500",
 
-  composer: "border-t p-2.5 sm:p-3 sticky bottom-0 transition-colors duration-300",
+  composer: "border-t px-3 sm:px-4 py-2 sm:py-3 flex-shrink-0 transition-colors duration-300",
   composerLight: "bg-white border-slate-200",
   composerDark: "bg-slate-900 border-slate-800",
 
   filePills: "flex gap-2 flex-wrap mb-2",
-  fileChip: "text-xs rounded px-2 py-1",
+  fileChip: "text-xs rounded-full px-3 py-1",
   fileChipLight: "bg-slate-200 text-slate-800",
   fileChipDark: "bg-slate-700 text-slate-100",
 
   row: "flex items-center gap-2",
 
   attachBtn:
-    "px-3 py-2 rounded-lg border font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-0",
+    "p-2.5 rounded-full transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-0",
   attachBtnLight:
-    "border-slate-300 bg-white text-slate-700 hover:bg-slate-50 focus:ring-blue-500",
+    "text-slate-600 hover:bg-slate-100 hover:text-slate-900 focus:ring-blue-500",
   attachBtnDark:
-    "border-slate-700 bg-slate-800 text-slate-200 hover:bg-slate-700 focus:ring-blue-400",
+    "text-slate-400 hover:bg-slate-800 hover:text-slate-100 focus:ring-blue-400",
 
   textarea:
-    "flex-1 rounded-lg border text-sm sm:text-base focus:outline-none focus:ring-2 min-h-[44px] max-h-[180px] px-3 py-2 transition-colors duration-200",
+    "flex-1 rounded-full border-2 text-sm sm:text-base focus:outline-none focus:ring-2 px-4 py-2.5 resize-none transition-all duration-200",
   textareaLight:
-    "border-slate-300 bg-white text-slate-900 placeholder-slate-400 focus:ring-blue-500",
+    "border-slate-200 bg-slate-50 text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:bg-white focus:ring-blue-500/20",
   textareaDark:
-    "border-slate-700 bg-slate-800 text-slate-100 placeholder-slate-500 focus:ring-blue-400",
+    "border-slate-700 bg-slate-800 text-slate-100 placeholder-slate-500 focus:border-blue-400 focus:bg-slate-900 focus:ring-blue-400/20",
 
   sendBtn:
-    "rounded-lg px-4 py-2 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-offset-0",
-  sendBtnLight: "bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500",
-  sendBtnDark: "bg-blue-600 text-white hover:bg-blue-500 focus:ring-blue-400",
+    "p-2.5 rounded-full transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-0",
+  sendBtnEnabled: "bg-blue-600 text-white hover:bg-blue-700 shadow-lg hover:shadow-xl",
+  sendBtnDisabled: "bg-slate-300 text-slate-500 cursor-not-allowed",
+  sendBtnDarkDisabled: "bg-slate-700 text-slate-500",
 };
 
 export default function ChatWindow({ conversationId, conversation }) {
@@ -129,22 +131,28 @@ export default function ChatWindow({ conversationId, conversation }) {
   const [text, setText] = useState("");
   const [files, setFiles] = useState([]);
   const fileInput = useRef(null);
+  const messagesEndRef = useRef(null);
 
   useEffect(() => {
     if (conversationId) openConversation(conversationId);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [conversationId]);
+
+  // Auto-scroll to bottom when new messages arrive
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messagesByConv[conversationId]]);
 
   const messages = messagesByConv[conversationId] || [];
   const other = conversation?.other;
   const avatar = other?.profileImage ? buildFileUrl(other.profileImage) : "/default-avatar.png";
 
-  // Visible status for the other participant (from users cache or convo.other)
   const st = getVisibleStatus(users[other?._id]?.status || other?.status || null, other?._id, me.id);
   const statusLine = st ? [st.emoji, st.text].filter(Boolean).join(" ") : "";
 
+  const canSend = text.trim() || files.length > 0;
+
   const onSend = async () => {
-    if (!text.trim() && files.length === 0) return;
+    if (!canSend) return;
     await sendMessage(conversationId, { text: text.trim(), files });
     setText("");
     setFiles([]);
@@ -163,6 +171,10 @@ export default function ChatWindow({ conversationId, conversation }) {
     const f = Array.from(e.target.files || []);
     setFiles((prev) => [...prev, ...f]);
     if (fileInput.current) fileInput.current.value = null;
+  };
+
+  const removeFile = (index) => {
+    setFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
   const doClear = async () => {
@@ -188,13 +200,12 @@ export default function ChatWindow({ conversationId, conversation }) {
       {/* Header */}
       <div className={clsx(styles.header, darkMode ? styles.headerDark : styles.headerLight)}>
         <div className={styles.headerRow}>
-          {/* Cut/Close button (mobile + desktop) */}
           <button
             onClick={closeChat}
             className={clsx(styles.closeBtn, darkMode ? styles.closeBtnDark : styles.closeBtnLight)}
-            title="Close chat"
+            title="Back to messages"
           >
-            ✕ <span className="hidden md:inline">Close</span>
+            <IoArrowBack className="text-xl" />
           </button>
 
           <div className={styles.avatarWrap}>
@@ -217,27 +228,19 @@ export default function ChatWindow({ conversationId, conversation }) {
 
           <div className={styles.nameWrap}>
             <div className={clsx(styles.name, darkMode ? styles.nameDark : styles.nameLight)}>
-              <Link to={`/profile/${other?._id}`} className="hover:underline" title="View profile">
+              <Link to={`/profile/${other?._id}`} className="hover:underline truncate" title="View profile">
                 {other?.firstName} {other?.lastName}
-              </Link>{" "}
-              <Link
-                to={`/profile/${other?._id}`}
-                className={clsx("hover:underline", styles.username, darkMode ? styles.usernameDark : styles.usernameLight)}
-                title="View profile"
-              >
-                @{other?.username}
               </Link>
             </div>
-            {/* Status line under the name */}
-            {statusLine && (
-              <div className={clsx(styles.statusLine, darkMode ? styles.statusLineDark : styles.statusLineLight)}>
-                {statusLine}
+            <div className={clsx(styles.username, darkMode ? styles.usernameDark : styles.usernameLight)}>
+              @{other?.username}
+              {statusLine && <span className="ml-2">• {statusLine}</span>}
+            </div>
+            {typingMap[conversationId] && (
+              <div className={clsx(styles.meta, darkMode ? styles.metaDark : styles.metaLight)}>
+                Typing...
               </div>
             )}
-            <div className={clsx(styles.meta, darkMode ? styles.metaDark : styles.metaLight)}>
-              {conversation?.otherOnline ? "Online" : "Offline"}
-              {typingMap[conversationId] ? " • Typing..." : ""}
-            </div>
           </div>
 
           <div className={styles.actions}>
@@ -246,21 +249,21 @@ export default function ChatWindow({ conversationId, conversation }) {
               onClick={() => startCall(conversationId, other?._id, "audio")}
               title="Audio call"
             >
-              Call
+              <IoCall className="text-xl" />
             </button>
             <button
               className={clsx(styles.actionBtn, darkMode ? styles.actionBtnDark : styles.actionBtnLight)}
               onClick={() => startCall(conversationId, other?._id, "video")}
               title="Video call"
             >
-              Video
+              <IoVideocam className="text-xl" />
             </button>
             <button
               className={clsx(styles.dangerBtn, darkMode ? styles.dangerBtnDark : styles.dangerBtnLight)}
               onClick={doClear}
-              title="Clear chat (for me)"
+              title="Clear chat"
             >
-              Clear
+              <IoTrash className="text-xl" />
             </button>
           </div>
         </div>
@@ -273,9 +276,12 @@ export default function ChatWindow({ conversationId, conversation }) {
         ))}
         {messages.length === 0 && (
           <div className={clsx(styles.empty, darkMode ? styles.emptyDark : styles.emptyLight)}>
-            No messages
+            <div className="text-6xl mb-4 opacity-30">💬</div>
+            <div className="text-lg font-medium mb-1">No messages yet</div>
+            <div className="text-sm opacity-70">Send a message to start the conversation</div>
           </div>
         )}
+        <div ref={messagesEndRef} />
       </div>
 
       {/* Composer */}
@@ -284,7 +290,13 @@ export default function ChatWindow({ conversationId, conversation }) {
           <div className={styles.filePills}>
             {files.map((f, i) => (
               <div key={i} className={clsx(styles.fileChip, darkMode ? styles.fileChipDark : styles.fileChipLight)}>
-                {f.name} ({Math.round(f.size / 1024)} KB)
+                <span className="truncate max-w-[150px]">{f.name}</span>
+                <button 
+                  onClick={() => removeFile(i)}
+                  className="ml-2 text-xs hover:text-rose-500"
+                >
+                  ✕
+                </button>
               </div>
             ))}
           </div>
@@ -296,7 +308,7 @@ export default function ChatWindow({ conversationId, conversation }) {
             onClick={() => fileInput.current?.click()}
             title="Attach files"
           >
-            ➕
+            <IoAttach className="text-xl" />
           </button>
           <input
             ref={fileInput}
@@ -307,20 +319,28 @@ export default function ChatWindow({ conversationId, conversation }) {
             hidden
           />
 
-          <textarea
+          <input
             value={text}
             onChange={(e) => setText(e.target.value)}
             onKeyDown={onKeyDown}
-            placeholder="Type a message… 😊"
+            placeholder="Type a message..."
             className={clsx(styles.textarea, darkMode ? styles.textareaDark : styles.textareaLight)}
+            type="text"
           />
 
           <button
-            className={clsx(styles.sendBtn, darkMode ? styles.sendBtnDark : styles.sendBtnLight)}
+            className={clsx(
+              styles.sendBtn,
+              canSend 
+                ? styles.sendBtnEnabled 
+                : (darkMode ? styles.sendBtnDarkDisabled : styles.sendBtnDisabled),
+              darkMode && canSend ? "focus:ring-blue-400" : "focus:ring-blue-500"
+            )}
             onClick={onSend}
+            disabled={!canSend}
             title="Send message"
           >
-            Send
+            <IoSend className="text-xl" />
           </button>
         </div>
       </div>
