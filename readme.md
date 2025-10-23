@@ -1,275 +1,414 @@
-# Connestro
-Where connections grow stronger.
+# 🚀 Connestro
 
-Connestro is a full‑stack social platform with real‑time features, private messaging and calls, rich profiles, moderation tools, multi‑account switching, Status, Stories, and Reels (short‑form vertical videos with views, likes, and comments). Built with Node.js, Express, MongoDB, Socket.IO, WebRTC, and React (Vite).
+> **Where connections grow stronger** — A modern, full-stack social media platform
 
-- Auth: Local + Google, password reset via email, terms acceptance, account suspension
-- Feed: Posts (text + images/videos/links), likes, comments, comment reactions, drafts, audience controls
-- Visual: Reels (short-form vertical video feed) + Stories (24h) + Status (short text/emoji)
-- Messaging: 1:1 chat with attachments, read receipts, presence, audio/video calls
-- Moderation: Reports, auto‑moderation, admin dashboard, audit exports
-- Multi‑account: Add/switch/remove accounts without logging out
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-connestro.vercel.app-blue?style=for-the-badge&logo=vercel)](https://connestro.vercel.app/)
+[![GitHub Stars](https://img.shields.io/github/stars/saurav-kumar-sah-dev/Connestro?style=for-the-badge&logo=github)](https://github.com/saurav-kumar-sah-dev/Connestro)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-sauravkumarsah--dev-blue?style=for-the-badge&logo=linkedin)](https://www.linkedin.com/in/sauravkumarsah-dev/)
+
+## 🌟 Overview
+
+**Connestro** is a comprehensive social media platform that combines the best features of modern social networks with real-time communication, content sharing, and advanced moderation tools. Built with cutting-edge technologies, it offers a seamless experience across all devices.
+
+### ✨ Key Highlights
+
+- 🔐 **Multi-Auth**: Local + Google OAuth with secure password reset
+- 📱 **Real-time**: Live messaging, video calls, and instant notifications  
+- 🎬 **Content**: Posts, Reels (TikTok-style), Stories, and Status updates
+- 👥 **Social**: Follow system, live search, and enhanced profiles
+- 🛡️ **Moderation**: Advanced admin dashboard with auto-moderation
+- 🔄 **Multi-Account**: Switch between accounts without logout
 
 --- 
 
-## Table of Contents
-- Features
-- Tech Stack
-- Quick Start
-- Environment Variables (Server + Client)
-- Development Scripts
-- Build & Deploy
-- File Uploads
-- API Overview (selected)
-- Socket.IO Events
-- Stories Details
-- Reels Details
-- Security Notes
-- Troubleshooting
-- Roadmap
-- License
-- Screenshots
+## 📋 Table of Contents
+
+- [🌟 Overview](#-overview)
+- [✨ Features](#-features)
+- [🛠️ Tech Stack](#️-tech-stack)
+- [🚀 Quick Start](#-quick-start)
+- [⚙️ Environment Variables](#️-environment-variables)
+- [🔧 Development Scripts](#-development-scripts)
+- [📦 Build & Deploy](#-build--deploy)
+- [📁 File Uploads](#-file-uploads)
+- [🔌 API Overview](#-api-overview)
+- [⚡ Socket.IO Events](#-socketio-events)
+- [📖 Stories Details](#-stories-details)
+- [🎬 Reels Details](#-reels-details)
+- [🔒 Security Notes](#-security-notes)
+- [🐛 Troubleshooting](#-troubleshooting)
+- [🛣️ Roadmap](#️-roadmap)
+- [📸 Screenshots](#-screenshots)
+- [📄 License](#-license)
 
 ---
 
-## Features
+## ✨ Features
 
-### Authentication
-- Local signup/login, Google Sign‑In (GIS)
-- Forgot/reset password via email (Gmail SMTP or console fallback)
-- Terms acceptance and account suspension enforcement
+### 🔐 Authentication & Security
+- **Multi-Provider Auth**: Local signup/login + Google OAuth integration
+- **Password Management**: Secure reset via email with Gmail SMTP
+- **Account Security**: Terms acceptance and suspension enforcement
+- **JWT Protection**: Bearer token authentication with expiration
 
-### Profiles
-- Basic: name, username, bio, location, profile image/banner
-- Enhanced: skills, education, experience, websites, contact info, linked accounts, achievements
-- Per‑field visibility (public/private)
-- Username change tracking
+### 👤 Enhanced Profiles
+- **Basic Profile**: Name, username, bio, location, profile image/banner
+- **Advanced Profile**: Skills, education, experience, websites, contact info
+- **Privacy Controls**: Per-field visibility settings (public/private)
+- **Account Management**: Username change tracking and history
 
-### Posts
-- Text + images/videos/links
-- Likes, comments, comment reactions
-- Drafts and audience: public / followers / private
-- Per‑viewer feed rendering
+### 📝 Content Creation
+- **Rich Posts**: Text, images, videos, documents, and links
+- **Engagement**: Likes, comments, reactions, and replies
+- **Draft System**: Save content before publishing
+- **Audience Control**: Public, followers-only, or private visibility
 
-### Reels
-- Vertical short‑form videos (9:16), autoplay, loop, mute/unmute
-- Likes and comments, viewer count
-- Smart preloading; swipe up/down navigation
-- Server‑side duration validation via ffprobe
+### 🎬 Reels (TikTok-style)
+- **Vertical Videos**: 9:16 aspect ratio with autoplay and loop
+- **Smart Navigation**: Swipe gestures and smooth transitions
+- **Engagement**: Likes, comments, views, and share functionality
+- **Validation**: Server-side duration and file size validation
 
-### Status
-- Short text + emoji with optional expiry and privacy (public/private)
-- Realtime updates to viewers
+### 📱 Stories & Status
+- **24h Stories**: Auto-expiring content with viewer tracking
+- **Status Updates**: Short text/emoji with optional expiry
+- **Reactions**: Like, emoji reactions, and text replies
+- **UI Integration**: Story rings across all interface elements
 
-### Stories
-- Image or video (≤ 15s), auto‑expires after 24 hours (MongoDB TTL)
-- Viewer tracking, reactions (like/emoji/text)
-- Rings across UI (StoryBar, profile, lists, search, chat)
+### 💬 Real-time Communication
+- **Instant Messaging**: 1:1 chat with file attachments
+- **Video/Audio Calls**: WebRTC-powered calling system
+- **Presence**: Online/offline status indicators
+- **Read Receipts**: Message delivery and read confirmations
 
-### Following
-- Follow/unfollow + realtime updates
+### 🔔 Smart Notifications
+- **Real-time Alerts**: Likes, comments, follows, messages, calls
+- **Sound Controls**: Customizable notification sounds and volume
+- **Badge Counts**: Unread message and notification counters
+- **Settings**: Granular notification preferences
 
-### Search
-- Live user search (name/username/place) with safe regex escaping
+### 🛡️ Advanced Moderation
+- **Report System**: User and content reporting with attachments
+- **Auto-Moderation**: Automatic content hiding based on reports
+- **Admin Dashboard**: Comprehensive management interface
+- **Audit Trail**: Complete action logging with CSV exports
 
-### Messaging + Calls
-- Conversations, text messages with attachments
-- Delivery/read receipts, edit/delete, clear‑for‑me
-- Presence indicators
-- Audio/video calls (WebRTC), ring timeout
-
-### Notifications
-- Likes, comments, follows, messages, calls, comment reactions, moderation/report updates
-- Badge count and optional sounds
-
-### Moderation
-- Reports (post/user) with images/PDF
-- Auto‑moderation: hide posts after N reports in a time window
-- Admin dashboard: users, posts, reports, metrics, audit trail (CSV exports)
-- Admin actions (suspend/unsuspend/hide/unhide/delete)
-
-### Multi‑account (client)
-- Add/switch/remove accounts without logging out
-- Socket/chat state auto‑reinit on switch
+### 🔄 Multi-Account Management
+- **Account Switching**: Seamless switching between accounts
+- **State Management**: Automatic socket and chat state reinitialization
+- **Account Storage**: Secure local storage of multiple accounts
 
 ---
 
-## Tech Stack
-- Backend: Node.js, Express, Mongoose (MongoDB), Socket.IO, Multer, Nodemailer, ffprobe-static, Google Auth Library
-- Frontend: React (Vite), Socket.IO Client
-- Realtime: Socket.IO + WebRTC (calls)
-- Auth: JWT (Bearer tokens)
-- Email: Gmail SMTP (App Password) or console fallback
+## 🛠️ Tech Stack
+
+### 🖥️ Backend
+- **Runtime**: Node.js with Express.js framework
+- **Database**: MongoDB with Mongoose ODM
+- **Real-time**: Socket.IO for live communication
+- **Authentication**: JWT (JSON Web Tokens)
+- **File Uploads**: Multer for multipart form handling
+- **Email Service**: Nodemailer with Gmail SMTP
+- **Video Processing**: ffprobe-static for metadata validation
+- **OAuth**: Google Auth Library for social login
+
+### 🎨 Frontend
+- **Framework**: React 19 with Vite build tool
+- **Routing**: React Router for navigation
+- **Styling**: Tailwind CSS for responsive design
+- **State Management**: React Context API
+- **HTTP Client**: Axios for API communication
+- **Real-time**: Socket.IO Client for live updates
+- **Icons**: React Icons and Lucide React
+
+### 🌐 Real-time Communication
+- **WebSocket**: Socket.IO for instant messaging
+- **WebRTC**: Peer-to-peer video/audio calls
+- **Presence**: Online/offline user status
+- **Notifications**: Real-time push notifications
+
+### 🔒 Security & Performance
+- **Authentication**: JWT with secure token handling
+- **Rate Limiting**: Express rate limiting for API protection
+- **CORS**: Cross-origin resource sharing configuration
+- **File Validation**: Server-side file type and size validation
+- **Input Sanitization**: XSS and injection attack prevention
 
 ---
 
-## 🌐 Connect & Try  
+## 🌐 Live Demo
 
-🔗 [**View Deployed App**](https://connestro.vercel.app/) ✅ *(Live Now)*  
-🔗 [**Linkedin Profile**](https://www.linkedin.com/in/sauravkumarsah-dev/) ✅ *(Linkedin)*  
+<div align="center">
 
----
+[![Live Demo](https://img.shields.io/badge/🚀%20Try%20Live%20Demo-connestro.vercel.app-00C7B7?style=for-the-badge&logo=vercel)](https://connestro.vercel.app/)
 
-## Quick Start
+[![LinkedIn](https://img.shields.io/badge/👨‍💻%20Connect%20on%20LinkedIn-sauravkumarsah--dev-0077B5?style=for-the-badge&logo=linkedin)](https://www.linkedin.com/in/sauravkumarsah-dev/)
 
-Install dependencies
-
-Server
-cd server
-npm install
-
-also installs ffprobe-static for video verification
-text
-
-
-Client
-cd client
-npm install
-
-text
-
-
-Create environment files
-- server/.env (see “Environment Variables”)
-- client/.env (see “Environment Variables”)
-
-Start dev
-
-Server (http://localhost:5000)
-cd server
-node server.js
-
-or nodemon server.js
-text
-
-
-Client (http://localhost:5173)
-cd client
-npm run dev
-
-text
-
-
-Open http://localhost:5173
+</div>
 
 ---
 
-## Environment Variables
+## 🚀 Quick Start
 
-Create server/.env:
-Server
+### 📋 Prerequisites
+- Node.js (v16 or higher)
+- MongoDB (local or cloud)
+- Git
+
+### 🔧 Installation
+
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/saurav-kumar-sah-dev/Connestro.git
+   cd Connestro
+   ```
+
+2. **Install server dependencies**
+   ```bash
+   cd server
+   npm install
+   ```
+   > This also installs `ffprobe-static` for video verification
+
+3. **Install client dependencies**
+   ```bash
+   cd ../client
+   npm install
+   ```
+
+4. **Set up environment variables**
+   - Create `server/.env` (see [Environment Variables](#️-environment-variables))
+   - Create `client/.env` (see [Environment Variables](#️-environment-variables))
+
+### 🚀 Development
+
+1. **Start the server** (http://localhost:5000)
+   ```bash
+   cd server
+   node server.js
+   # or for development with auto-restart:
+   nodemon server.js
+   ```
+
+2. **Start the client** (http://localhost:5173)
+   ```bash
+   cd client
+   npm run dev
+   ```
+
+3. **Open your browser**
+   Navigate to [http://localhost:5173](http://localhost:5173)
+
+### 🎯 First Steps
+1. Create an account or sign in with Google
+2. Upload a profile picture and update your bio
+3. Create your first post or reel
+4. Explore the real-time messaging features
+5. Try the video calling functionality
+
+---
+
+## ⚙️ Environment Variables
+
+### 🖥️ Server Configuration (`server/.env`)
+
+```env
+# Server Configuration
 PORT=5000
 MONGO_URI=mongodb://localhost:27017/connestro
 JWT_SECRET=your_jwt_secret
 
-CORS + Frontend
+# CORS & Frontend
 FRONTEND_URL=http://localhost:5173
 
-Uploads
+# File Uploads
 UPLOADS_DIR=./uploads
 
-Email (optional; if missing, emails log to console)
+# Email Configuration (optional - logs to console if missing)
 GMAIL_USER=your.gmail@gmail.com
 GMAIL_APP_PASSWORD=your_gmail_app_password
 EMAIL_FROM=Connestro your.gmail@gmail.com
 EMAIL_TLS_INSECURE=false # true only for local/dev if needed
 
-Google Sign-In
+# Google OAuth
 GOOGLE_CLIENT_ID=xxx.apps.googleusercontent.com
 
-Terms versioning (optional)
+# Terms & Conditions
 TERMS_VERSION=1.0
 
-Reports / Auto‑mod (optional)
+# Moderation Settings (optional)
 REPORTS_THROTTLE_HOURS=24
 REPORTS_AUTOMOD_COUNT=5
 REPORTS_AUTOMOD_WINDOW_HOURS=6
 
-Calls
+# Call Settings
 CALL_RING_TIMEOUT_MS=30000
 
-Stories
+# Content Limits
 STORIES_DAILY_LIMIT=50
-
-Reels (NEW)
 REELS_DAILY_LIMIT=30
 REELS_MAX_DURATION_SEC=60
 REELS_MAX_FILE_MB=200
+```
 
-text
+### 🎨 Client Configuration (`client/.env`)
 
-
-Create client/.env:
-Client (Vite)
+```env
+# API Configuration
 VITE_API_URL=http://localhost:5000
 VITE_GOOGLE_CLIENT_ID=xxx.apps.googleusercontent.com
 
-WebRTC STUN/TURN (optional)
+# WebRTC Configuration (optional)
 VITE_STUN_URLS=stun:stun.l.google.com:19302,stun:stun1.l.google.com:19302
 
-If you have TURN:
+# TURN Server (if you have one)
 VITE_TURN_URLS=turn:your.turn.server:3478
 VITE_TURN_USERNAME=user
 VITE_TURN_CREDENTIAL=pass
-Calls UI
+
+# UI Settings
 VITE_CALL_RING_TIMEOUT_SEC=30
+```
 
-text
+### 📝 Important Notes
 
-
-Notes:
-- Gmail: Use an App Password (not your normal password).
-- Google Sign‑In: Create an OAuth Web Client ID; add http://localhost:5173 under Authorized JS origins (dev).
-
----
-
-## Development Scripts
-- server: node server.js (or nodemon server.js)
-- client: npm run dev
-
-Optional:
-- For production, consider PM2/systemd for the server.
+- **Gmail Setup**: Use an App Password (not your regular password)
+- **Google OAuth**: Create OAuth Web Client ID and add `http://localhost:5173` to authorized origins
+- **MongoDB**: Use local MongoDB or MongoDB Atlas for cloud database
+- **JWT Secret**: Use a strong, random secret for production
 
 ---
 
-## Build & Deploy
+## 🔧 Development Scripts
 
-Client:
+### 🖥️ Server Scripts
+```bash
+# Start server (development)
+cd server
+node server.js
+
+# Start with auto-restart (recommended for development)
+nodemon server.js
+
+# Production (consider PM2/systemd)
+pm2 start server.js --name connestro-server
+```
+
+### 🎨 Client Scripts
+```bash
+# Start development server
 cd client
+npm run dev
+
+# Build for production
 npm run build
 
-serves from dist/ via Netlify/Vercel/static server
-text
+# Preview production build
+npm run preview
+```
 
-
-Server:
-- Keep Express serving /uploads
-- Expose server URL to client via VITE_API_URL
-- Configure CORS allowed origins to your production domain(s)
-
-Reverse proxy:
-- Nginx/Apache/Caddy in front of Node + static client files
+### 🚀 Production Considerations
+- **Process Management**: Use PM2 or systemd for server process management
+- **Load Balancing**: Consider Nginx for reverse proxy and load balancing
+- **SSL**: Configure HTTPS for production deployment
+- **Monitoring**: Set up logging and monitoring for production
 
 ---
 
-## File Uploads
-- Static: /uploads (served by Express with caching)
-- Subdirs: profileImages, posts, chat, reports, stories, reels
+## 📦 Build & Deploy
 
-Limits:
-- Profile image: images only, ≤ 5MB
-- Posts: images+videos, ≤ 50MB/file, up to 5 files
-- Chat: images+videos, ≤ 25MB/file, up to 6 files
-- Reports: images+PDF, ≤ 5MB/file
-- Stories: images+videos, ≤ 30MB/file, video length ≤ 15s (ffprobe‑validated)
-- Reels: videos only (vertical preferred), ≤ 200MB/file, video length ≤ 60s (ffprobe‑validated)
+### 🎨 Frontend Deployment
 
-Cleanup:
-- User deletion cascades: posts + media, stories + media, reels + media, followers/following references, profile image/banner
+1. **Build the client**
+   ```bash
+   cd client
+   npm run build
+   ```
+
+2. **Deploy to Vercel/Netlify**
+   - The `dist/` folder contains the built files
+   - Configure environment variables in your hosting platform
+   - Set `VITE_API_URL` to your production server URL
+
+### 🖥️ Backend Deployment
+
+1. **Server Requirements**
+   - Keep Express serving `/uploads` directory
+   - Configure CORS for production domains
+   - Set up proper environment variables
+
+2. **Reverse Proxy Setup**
+   ```nginx
+   # Nginx configuration example
+   server {
+       listen 80;
+       server_name your-domain.com;
+       
+       location / {
+           proxy_pass http://localhost:5000;
+           proxy_http_version 1.1;
+           proxy_set_header Upgrade $http_upgrade;
+           proxy_set_header Connection 'upgrade';
+           proxy_set_header Host $host;
+           proxy_cache_bypass $http_upgrade;
+       }
+   }
+   ```
+
+### 🌐 Production Environment Variables
+
+Update your production environment variables:
+- `FRONTEND_URL`: Your production frontend URL
+- `MONGO_URI`: Production MongoDB connection string
+- `JWT_SECRET`: Strong production secret
+- `GMAIL_USER` & `GMAIL_APP_PASSWORD`: Production email credentials
 
 ---
 
-## API Overview (selected)
+## 📁 File Uploads
+
+### 📂 Directory Structure
+```
+/uploads/
+├── profileImages/    # User profile pictures and banners
+├── posts/           # Post media (images, videos, documents)
+├── chat/            # Message attachments
+├── reports/         # Report attachments (images, PDFs)
+├── stories/         # Story media (24h expiry)
+└── reels/           # Short-form videos
+```
+
+### 📏 File Size Limits
+
+| Content Type | File Types | Max Size | Max Files | Special Notes |
+|--------------|------------|----------|-----------|---------------|
+| **Profile Images** | Images only | 5MB | 1 | Profile pictures and banners |
+| **Posts** | Images, Videos | 50MB/file | 5 files | Rich media posts |
+| **Chat Attachments** | Images, Videos | 25MB/file | 6 files | Message attachments |
+| **Reports** | Images, PDFs | 5MB/file | Multiple | Report evidence |
+| **Stories** | Images, Videos | 30MB/file | 1 | ≤ 15s video length |
+| **Reels** | Videos only | 200MB/file | 1 | ≤ 60s, vertical preferred |
+
+### 🔧 Technical Details
+
+- **Static Serving**: Files served by Express with caching headers
+- **Validation**: Server-side file type and size validation
+- **Video Processing**: ffprobe-static for metadata validation
+- **Cleanup**: Automatic file deletion on user/content deletion
+- **Security**: File type restrictions and size limits
+
+### 🗑️ Automatic Cleanup
+
+When users or content are deleted, the system automatically:
+- Removes associated media files
+- Cleans up profile images and banners
+- Removes story and reel media
+- Updates follower/following references
+- Maintains database integrity
+
+---
+
+## 🔌 API Overview
 
 ### Auth
 - POST /api/auth/signup
@@ -374,7 +513,7 @@ Cleanup:
 
 ---
 
-## Socket.IO Events (summary)
+## ⚡ Socket.IO Events
 - Auth: connect with auth: { token }
 - Presence: presence:onlineUsers, presence:update
 - Feed: newPost, updateLike, newComment, deletePost
@@ -394,7 +533,7 @@ Cleanup:
 
 ---
 
-## Stories Details
+## 📖 Stories Details
 - Storage: /uploads/stories
 - Expiry: 24 hours (MongoDB TTL on expiresAt)
 - Video length: ≤ 15s, verified server‑side via ffprobe-static
@@ -412,7 +551,7 @@ Cleanup:
 
 ---
 
-## Reels Details
+## 🎬 Reels Details
 - Storage: /uploads/reels
 - Duration: ≤ 60s (configurable via REELS_MAX_DURATION_SEC)
 - Aspect: Vertical 9:16 recommended (1080x1920)
@@ -432,7 +571,7 @@ Cleanup:
 
 ---
 
-## Security Notes
+## 🔒 Security Notes
 - JWT secured endpoints; suspended accounts blocked at middleware and login
 - Rate limiting on forgot password (per IP and per email)
 - Username validation + reserved names
@@ -446,7 +585,7 @@ Cleanup:
 
 ---
 
-## Troubleshooting
+## 🐛 Troubleshooting
 - Video upload “Could not read metadata”:
   - Client falls back gracefully; server ffprobe validates length/codec.
   - Prefer H.264 MP4/WebM; HEVC may not play on all browsers.
@@ -466,7 +605,7 @@ Cleanup:
 
 ---
 
-## Roadmap
+## 🛣️ Roadmap
 - Story highlights (pin to profile, no expiry)
 - Swipe gestures for stories on mobile (left/right)
 - Preload next/prev story media for smoother transitions
@@ -478,8 +617,40 @@ Cleanup:
 
 ---
 
-## License
-Add your license of choice (e.g., MIT).
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request. For major changes, please open an issue first to discuss what you would like to change.
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+---
+
+## 📞 Contact
+
+**Saurav Kumar Sah**
+- LinkedIn: [sauravkumarsah-dev](https://www.linkedin.com/in/sauravkumarsah-dev/)
+- GitHub: [saurav-kumar-sah-dev](https://github.com/saurav-kumar-sah-dev)
+- Project Link: [https://github.com/saurav-kumar-sah-dev/Connestro](https://github.com/saurav-kumar-sah-dev/Connestro)
+
+---
+
+## 🙏 Acknowledgments
+
+- React team for the amazing framework
+- Socket.IO for real-time communication
+- MongoDB for the flexible database
+- Vercel for hosting the frontend
+- All the open-source contributors who made this possible
 
 ---
 
