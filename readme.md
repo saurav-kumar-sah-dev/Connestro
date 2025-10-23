@@ -10,7 +10,7 @@ Connestro is a full‑stack social platform with real‑time features, private m
 - Moderation: Reports, auto‑moderation, admin dashboard, audit exports
 - Multi‑account: Add/switch/remove accounts without logging out
 
----
+--- 
 
 ## Table of Contents
 - Features
