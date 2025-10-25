@@ -26,6 +26,7 @@ import Notifications from "./pages/Notifications";
 import MyReports from "./pages/MyReports";
 import { ensureActiveSeed } from "./utils/accounts";
 import Reels from "./pages/Reels";
+import NotFound from "./pages/NotFound";
 
 export default function App() {
   const [token, setToken] = useState(() => localStorage.getItem("token"));
@@ -150,6 +151,9 @@ export default function App() {
                   token ? <SetPassword /> : <Navigate to="/home" replace />
                 }
               />
+
+              {/* Catch-all route for 404 */}
+              <Route path="*" element={<NotFound />} />
             </Routes>
             <Footer />
           </ChatProvider>
