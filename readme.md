@@ -4,6 +4,9 @@
 
 [![Live Demo](https://img.shields.io/badge/Live%20Demo-connestro.vercel.app-blue?style=for-the-badge&logo=vercel)](https://connestro.vercel.app/)
 [![GitHub Stars](https://img.shields.io/github/stars/saurav-kumar-sah-dev/Connestro?style=for-the-badge&logo=github)](https://github.com/saurav-kumar-sah-dev/Connestro)
+[![GitHub Forks](https://img.shields.io/github/forks/saurav-kumar-sah-dev/Connestro?style=for-the-badge&logo=github)](https://github.com/saurav-kumar-sah-dev/Connestro)
+[![GitHub Issues](https://img.shields.io/github/issues/saurav-kumar-sah-dev/Connestro?style=for-the-badge&logo=github)](https://github.com/saurav-kumar-sah-dev/Connestro)
+[![GitHub License](https://img.shields.io/github/license/saurav-kumar-sah-dev/Connestro?style=for-the-badge&logo=github)](https://github.com/saurav-kumar-sah-dev/Connestro)
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-sauravkumarsah--dev-blue?style=for-the-badge&logo=linkedin)](https://www.linkedin.com/in/sauravkumarsah-dev/)
 
 ## 🌟 Overview
@@ -680,9 +683,17 @@ Contributions are welcome! Please feel free to submit a Pull Request. For major 
 ## 📞 Contact
 
 **Saurav Kumar Sah**
-- LinkedIn: [sauravkumarsah-dev](https://www.linkedin.com/in/sauravkumarsah-dev/)
-- GitHub: [saurav-kumar-sah-dev](https://github.com/saurav-kumar-sah-dev)
-- Project Link: [https://github.com/saurav-kumar-sah-dev/Connestro](https://github.com/saurav-kumar-sah-dev/Connestro)
+
+- 🔗 **GitHub Repository**: [saurav-kumar-sah-dev/Connestro](https://github.com/saurav-kumar-sah-dev/Connestro)
+- 👨‍💻 **GitHub Profile**: [saurav-kumar-sah-dev](https://github.com/saurav-kumar-sah-dev)
+- 💼 **LinkedIn**: [sauravkumarsah-dev](https://www.linkedin.com/in/sauravkumarsah-dev/)
+- 🌐 **Live Demo**: [connestro.vercel.app](https://connestro.vercel.app/)
+
+### 🚀 Quick Links
+- [⭐ Star this repository](https://github.com/saurav-kumar-sah-dev/Connestro)
+- [🍴 Fork this repository](https://github.com/saurav-kumar-sah-dev/Connestro/fork)
+- [🐛 Report a bug](https://github.com/saurav-kumar-sah-dev/Connestro/issues)
+- [💡 Request a feature](https://github.com/saurav-kumar-sah-dev/Connestro/issues)
 
 ---
 
