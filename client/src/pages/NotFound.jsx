@@ -277,6 +277,21 @@ export default function NotFound() {
 
           {/* CTA Buttons */}
           <div className={styles.buttonsContainer}>
+            <button
+              onClick={handleGoBack}
+              className={clsx(
+                styles.ctaPrimary,
+                darkMode ? styles.ctaPrimaryDark : styles.ctaPrimaryLight
+              )}
+              aria-label="Go back to previous page"
+            >
+              <span className="relative z-10 flex items-center justify-center gap-3">
+                <IoArrowBackOutline className={clsx(styles.buttonIcon, "group-hover:-translate-x-1 group-hover:scale-110")} />
+                <span className="group-hover:translate-x-0.5 transition-transform duration-300">Go Back</span>
+              </span>
+              <div className={styles.shimmer} />
+            </button>
+
             {user ? (
               <Link
                 to="/"
@@ -309,21 +324,6 @@ export default function NotFound() {
                 <div className={styles.shimmer} />
               </Link>
             )}
-
-            <button
-              onClick={handleGoBack}
-              className={clsx(
-                styles.ctaPrimary,
-                darkMode ? styles.ctaPrimaryDark : styles.ctaPrimaryLight
-              )}
-              aria-label="Go back to previous page"
-            >
-              <span className="relative z-10 flex items-center justify-center gap-3">
-                <IoArrowBackOutline className={clsx(styles.buttonIcon, "group-hover:-translate-x-1 group-hover:scale-110")} />
-                <span className="group-hover:translate-x-0.5 transition-transform duration-300">Go Back</span>
-              </span>
-              <div className={styles.shimmer} />
-            </button>
           </div>
 
           {/* Quick Links */}
