@@ -8,7 +8,7 @@ const mongoose = require("mongoose");
 const jwt = require("jsonwebtoken");
 const path = require("path");
 const Notification = require("./models/Notification");
-const { UPLOADS_DIR, ensureUploadDirs } = require("./lib/uploads");
+const { cloudinary } = require("./lib/cloudinary");
 
 const app = express();
 
@@ -24,19 +24,8 @@ const allowedOrigins = [
 app.use(cors({ origin: allowedOrigins, credentials: true }));
 app.use(express.json());
 
-// Static uploads
-ensureUploadDirs();
-app.use(
-  "/uploads",
-  express.static(UPLOADS_DIR, {
-    etag: true,
-    maxAge: "7d",
-    index: false,
-    setHeaders: (res) => {
-      res.setHeader("Cache-Control", "public, max-age=604800, must-revalidate");
-    },
-  })
-);
+// Cloudinary configuration is handled in lib/cloudinary.js
+// No need for local file serving since we're using Cloudinary
 
 //  Routes 
 app.use("/api/auth", require("./routes/auth"));
@@ -187,10 +176,10 @@ async function createCallLog({
         io.to(String(notifUser)).emit("notification:new", populatedNotif);
       }
     } catch (e) {
-      console.warn("call notification error:", e.message);
+      // call notification error - silently fail
     }
   } catch (e) {
-    console.error("createCallLog error:", e);
+    // createCallLog error
   }
 }
 
@@ -242,7 +231,7 @@ async function markUndeliveredForUser(userId) {
       }
     }
   } catch (e) {
-    console.error("markUndeliveredForUser error:", e);
+    // markUndeliveredForUser error
   }
 }
 
@@ -260,7 +249,7 @@ io.on("connection", async (socket) => {
   // broadcast presence update
   socket.broadcast.emit("presence:update", { userId, online: true });
 
-  console.log(`⚡ User connected: ${userId} (socket ${socket.id})`);
+  // User connected
 
   // Delivered-on-connect
   markUndeliveredForUser(userId);
@@ -295,7 +284,7 @@ io.on("connection", async (socket) => {
         });
       }
     } catch (e) {
-      console.error("conversation:open error", e.message);
+      // conversation:open error
     }
   });
 
@@ -357,7 +346,7 @@ io.on("connection", async (socket) => {
          media: media === "video" ? "video" : "audio",
        });
      } catch (e) {
-       console.error("call:invite error:", e);
+       // call:invite error
      }
    });
 
@@ -406,7 +395,7 @@ io.on("connection", async (socket) => {
         io.to(String(sess.callee)).emit("call:end", { fromUserId: sess.caller, conversationId });
       }
     } catch (e) {
-      console.error("call:answer error:", e);
+      // call:answer error
     }
   });
 
@@ -452,7 +441,7 @@ io.on("connection", async (socket) => {
       // notify peer
       io.to(String(toUserId)).emit("call:end", { fromUserId: userId, conversationId });
     } catch (e) {
-      console.error("call:end error:", e);
+      // call:end error
     }
   });
 
@@ -493,10 +482,10 @@ io.on("connection", async (socket) => {
         }
       }
     } catch (e) {
-      console.error("disconnect cleanup error:", e);
+      // disconnect cleanup error
     }
 
-    console.log(`User disconnected: ${userId}`);
+    // User disconnected
   });
 });
 

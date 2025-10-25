@@ -3,8 +3,8 @@ const router = express.Router();
 const auth = require("../middleware/auth");
 const ctrl = require("../controllers/storyController");
 
-const { makeUploader } = require("../lib/uploads");
-const upload = makeUploader({ subdir: "stories", allow: "images+videos", fileSizeMB: 30 });
+const { uploaders } = require("../lib/cloudinary");
+const upload = uploaders.stories;
 
 // Create story (single media)
 router.post("/", auth, upload.single("media"), ctrl.create);

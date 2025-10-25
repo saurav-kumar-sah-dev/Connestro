@@ -5,7 +5,7 @@ const validator = require("validator");
 const bcrypt = require("bcryptjs");
 const { validateUsername } = require("../utils/username");
 const Notification = require("../models/Notification");
-const { unlinkFiles } = require("../lib/uploads");
+const { cloudinaryUtils } = require("../lib/cloudinary");
 const mongoose = require("mongoose");
 
 
@@ -199,7 +199,7 @@ exports.updateProfileImage = async (req, res) => {
       return res.status(403).json({ msg: "You can only update your own profile image" });
     }
 
-    const newUrl = `/uploads/profileImages/${file.filename}`;
+    const newUrl = file.path; // Cloudinary URL
 
     const user = await User.findById(req.user.id).select("-password");
     if (!user) return res.status(404).json({ msg: "User not found" });
@@ -208,8 +208,12 @@ exports.updateProfileImage = async (req, res) => {
     user.profileImage = newUrl;
     await user.save();
 
-    if (oldUrl && oldUrl !== newUrl && oldUrl.startsWith("/uploads/")) {
-      unlinkFiles([oldUrl]).catch(() => {});
+    // Delete old profile image from Cloudinary if it exists
+    if (oldUrl && oldUrl !== newUrl) {
+      const oldPublicId = cloudinaryUtils.getPublicIdFromUrl(oldUrl);
+      if (oldPublicId) {
+        cloudinaryUtils.deleteFile(oldPublicId).catch(() => {});
+      }
     }
 
     const io = req.app.get("io");
@@ -338,7 +342,7 @@ exports.updateProfile = async (req, res) => {
       io?.emit("usernameUpdated", { userId: String(user._id), username: user.username });
     }
   } catch (err) {
-    console.error("Update profile error:", err);
+    // Error("Update profile error:", err);
     res.status(500).json({ error: err.message });
   }
 };
@@ -413,7 +417,7 @@ exports.deleteUser = async (req, res) => {
 
     res.json({ msg: "User and related data deleted successfully" });
   } catch (err) {
-    console.error("Delete user error:", err);
+    // Error("Delete user error:", err);
     res.status(500).json({ error: err.message });
   }
 };
@@ -435,7 +439,7 @@ exports.searchUsers = async (req, res) => {
 
     res.json({ users });
   } catch (err) {
-    console.error("Search error:", err);
+    // Error("Search error:", err);
     res.status(500).json({ error: "Server error while searching users" });
   }
 };

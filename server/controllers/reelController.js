@@ -3,7 +3,7 @@ const mongoose = require("mongoose");
 const { Reel, ReelView } = require("../models/Reel");
 const User = require("../models/User");
 const Notification = require("../models/Notification");
-const { unlinkFiles, fsPathForPublicUrl } = require("../lib/uploads");
+const { cloudinaryUtils } = require("../lib/cloudinary");
 const { probeDurationSec } = require("../lib/ffprobe");
 
 const REEL_MAX_SEC = Number(process.env.REELS_MAX_DURATION_SEC || 60);
@@ -82,7 +82,7 @@ exports.create = async (req, res) => {
     if (!file) return res.status(400).json({ success: false, msg: "No video uploaded (field: video)" });
 
     if (!file.mimetype?.startsWith("video/")) {
-      await unlinkFiles([`/uploads/reels/${file.filename}`]).catch(() => {});
+      await cloudinaryUtils.deleteFile(file.filename).catch(() => {});
       return res.status(400).json({ success: false, msg: "Only video files are allowed for reels" });
     }
 
@@ -92,13 +92,14 @@ exports.create = async (req, res) => {
       : "public";
     const draft = String(req.body.draft || "") === "true" || req.body.draft === true;
 
-    let durationSec = 0;
-    const publicUrl = `/uploads/reels/${file.filename}`;
-    const localPath = fsPathForPublicUrl(publicUrl);
-    const probed = await probeDurationSec(localPath).catch(() => 0);
-    if (Number.isFinite(probed) && probed > 0) durationSec = Math.round(probed);
+    let durationSec = Number(req.body.durationSec || 0);
+    const publicUrl = file.path; // Cloudinary URL
+    
+    // For Cloudinary, we'll rely on client-side duration validation
+    // Cloudinary will handle video processing automatically
+    if (!Number.isFinite(durationSec) || durationSec < 0) durationSec = 0;
     if (durationSec > REEL_MAX_SEC) {
-      await unlinkFiles([publicUrl]).catch(() => {});
+      await cloudinaryUtils.deleteFile(file.filename).catch(() => {});
       return res.status(400).json({ success: false, msg: `Reel must be ${REEL_MAX_SEC}s or less` });
     }
 
@@ -133,8 +134,8 @@ exports.create = async (req, res) => {
 
     res.status(201).json({ success: true, reel: out });
   } catch (err) {
-    console.error("create reel error:", err);
-    if (file?.filename) await unlinkFiles([`/uploads/reels/${file.filename}`]).catch(() => {});
+    // create reel error
+    if (file?.filename) await cloudinaryUtils.deleteFile(file.filename).catch(() => {});
     res.status(500).json({ success: false, error: err.message });
   }
 };
@@ -160,7 +161,7 @@ exports.listFeed = async (req, res) => {
 
     res.json({ success: true, reels: reels.map(sanitizeReel) });
   } catch (err) {
-    console.error("listFeed reels error:", err);
+    // listFeed reels error
     res.status(500).json({ success: false, error: err.message });
   }
 };
@@ -201,7 +202,7 @@ exports.listForUser = async (req, res) => {
 
     res.json({ success: true, reels: reels.map(sanitizeReel) });
   } catch (err) {
-    console.error("listForUser reels error:", err);
+    // Error("listForUser reels error:", err);
     res.status(500).json({ success: false, error: err.message });
   }
 };
@@ -252,7 +253,7 @@ exports.like = async (req, res) => {
 
     res.json({ success: true, liked, likesCount });
   } catch (err) {
-    console.error("reel like error:", err);
+    // Error("reel like error:", err);
     res.status(500).json({ success: false, error: err.message });
   }
 };
@@ -300,7 +301,7 @@ exports.comment = async (req, res) => {
 
     res.json({ success: true, comment: c });
   } catch (err) {
-    console.error("reel comment error:", err);
+    // Error("reel comment error:", err);
     res.status(500).json({ success: false, error: err.message });
   }
 };
@@ -359,7 +360,7 @@ exports.replyToComment = async (req, res) => {
 
     res.json({ success: true, reply: newReply });
   } catch (err) {
-    console.error("replyToComment error:", err);
+    // Error("replyToComment error:", err);
     res.status(500).json({ success: false, error: err.message });
   }
 };
@@ -446,7 +447,7 @@ exports.voteComment = async (req, res) => {
       myVote: vote,
     });
   } catch (err) {
-    console.error("voteComment error:", err);
+    // Error("voteComment error:", err);
     res.status(500).json({ success: false, error: err.message });
   }
 };
@@ -536,7 +537,7 @@ exports.voteReply = async (req, res) => {
       myVote: vote,
     });
   } catch (err) {
-    console.error("voteReply error:", err);
+    // Error("voteReply error:", err);
     res.status(500).json({ success: false, error: err.message });
   }
 };
@@ -608,7 +609,7 @@ exports.reactToReply = async (req, res) => {
 
     res.json({ success: true, reply: updated });
   } catch (err) {
-    console.error("reactToReply error:", err);
+    // Error("reactToReply error:", err);
     res.status(500).json({ success: false, error: err.message });
   }
 };
@@ -651,7 +652,7 @@ exports.view = async (req, res) => {
 
     res.json({ success: true, counted: newly });
   } catch (err) {
-    console.error("reel view error:", err);
+    // Error("reel view error:", err);
     res.status(500).json({ success: false, error: err.message });
   }
 };
@@ -665,7 +666,7 @@ exports.listDrafts = async (req, res) => {
       .populate("user", "username firstName lastName profileImage");
     res.json({ success: true, reels: reels.map(sanitizeReel) });
   } catch (err) {
-    console.error("listDrafts error:", err);
+    // Error("listDrafts error:", err);
     res.status(500).json({ success: false, error: err.message });
   }
 };
@@ -703,7 +704,7 @@ exports.publish = async (req, res) => {
 
     res.json({ success: true, reel: out });
   } catch (err) {
-    console.error("publish reel error:", err);
+    // Error("publish reel error:", err);
     res.status(500).json({ success: false, error: err.message });
   }
 };
@@ -721,8 +722,9 @@ exports.remove = async (req, res) => {
     await r.deleteOne();
     await ReelView.deleteMany({ reel: id });
 
-    if (url && url.startsWith("/uploads/")) {
-      unlinkFiles([url]).catch(() => {});
+    if (url && url.includes("cloudinary.com")) {
+      const publicId = cloudinaryUtils.getPublicIdFromUrl(url);
+      if (publicId) cloudinaryUtils.deleteFile(publicId).catch(() => {});
     }
 
     const io = req.app.get("io");
@@ -730,7 +732,7 @@ exports.remove = async (req, res) => {
 
     res.json({ success: true });
   } catch (err) {
-    console.error("reel delete error:", err);
+    // Error("reel delete error:", err);
     res.status(500).json({ success: false, error: err.message });
   }
 };
@@ -778,7 +780,7 @@ exports.listLikes = async (req, res) => {
 
     res.json({ success: true, count: ordered.length, users: ordered });
   } catch (err) {
-    console.error("listLikes error:", err);
+    // Error("listLikes error:", err);
     res.status(500).json({ success: false, error: err.message });
   }
 };
@@ -810,7 +812,7 @@ exports.listViews = async (req, res) => {
 
     res.json({ success: true, count: items.length, items });
   } catch (err) {
-    console.error("listViews error:", err);
+    // Error("listViews error:", err);
     res.status(500).json({ success: false, error: err.message });
   }
 };
@@ -894,7 +896,7 @@ exports.listComments = async (req, res) => {
       comments: out,
     });
   } catch (err) {
-    console.error("listComments error:", err);
+    // Error("listComments error:", err);
     res.status(500).json({ success: false, error: err.message });
   }
 };
@@ -943,7 +945,7 @@ exports.canUsersView = async (req, res) => {
     }
     return res.json({ success: true, map });
   } catch (err) {
-    console.error("canUsersView error:", err);
+    // Error("canUsersView error:", err);
     res.status(500).json({ success: false, error: err.message });
   }
 };
@@ -988,7 +990,7 @@ exports.getById = async (req, res) => {
     // Return sanitized
     return res.json({ success: true, reel: sanitizeReel(reel) });
   } catch (err) {
-    console.error("getById reel error:", err);
+    // Error("getById reel error:", err);
     res.status(500).json({ success: false, error: err.message });
   }
 };

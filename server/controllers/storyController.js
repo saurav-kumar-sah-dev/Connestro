@@ -4,7 +4,7 @@ const Story = require("../models/Story");
 const User = require("../models/User");
 const Notification = require("../models/Notification");
 const { StoryView, StoryReaction } = require("../models/StoryEngagement");
-const { unlinkFiles, fsPathForPublicUrl } = require("../lib/uploads");
+const { cloudinaryUtils } = require("../lib/cloudinary");
 const { probeDurationSec } = require("../lib/ffprobe");
 
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -46,7 +46,7 @@ exports.create = async (req, res) => {
     const cutoff = new Date(Date.now() - DAY_MS);
     const count = await Story.countDocuments({ user: userId, createdAt: { $gte: cutoff } });
     if (count >= MAX_STORIES_PER_DAY) {
-      await unlinkFiles([`/uploads/stories/${file.filename}`]).catch(() => {});
+      await cloudinaryUtils.deleteFile(file.filename).catch(() => {});
       return res
         .status(429)
         .json({ success: false, msg: "Daily story limit reached. Try again later." });
@@ -57,7 +57,7 @@ exports.create = async (req, res) => {
     if (file.mimetype?.startsWith("video/")) type = "video";
     else if (file.mimetype?.startsWith("image/")) type = "image";
     else {
-      await unlinkFiles([`/uploads/stories/${file.filename}`]).catch(() => {});
+      await cloudinaryUtils.deleteFile(file.filename).catch(() => {});
       return res.status(400).json({ success: false, msg: "Only image or video allowed" });
     }
 
@@ -69,15 +69,13 @@ exports.create = async (req, res) => {
     let durationSec = Number(req.body.durationSec || 0);
     if (!Number.isFinite(durationSec) || durationSec < 0) durationSec = 0;
 
-    // Accurate server-side check for videos
+    // For Cloudinary, we'll rely on client-side duration validation
+    // Cloudinary will handle video processing automatically
     if (type === "video") {
-      const publicUrl = `/uploads/stories/${file.filename}`;
-      const localPath = fsPathForPublicUrl(publicUrl);
-      const probed = await probeDurationSec(localPath);
-      if (Number.isFinite(probed) && probed > 0) durationSec = Math.round(probed);
-      // allow tiny encoder drift
-      if (probed > 15.2) {
-        await unlinkFiles([publicUrl]).catch(() => {});
+      // Use client-provided duration or default to 0
+      // Cloudinary will process the video and we can get duration from metadata later if needed
+      if (durationSec > 15.2) {
+        await cloudinaryUtils.deleteFile(file.filename).catch(() => {});
         return res.status(400).json({ success: false, msg: "Video must be 15 seconds or less" });
       }
     }
@@ -86,7 +84,7 @@ exports.create = async (req, res) => {
     const story = await Story.create({
       user: userId,
       type,
-      url: `/uploads/stories/${file.filename}`,
+      url: file.path, // Cloudinary URL
       caption,
       durationSec: type === "video" ? durationSec : 0,
       visibility,
@@ -166,13 +164,13 @@ exports.create = async (req, res) => {
         }
       }
     } catch (e) {
-      console.error("story_publish notifications error:", e?.message || e);
+      // Error("story_publish notifications error:", e?.message || e);
     }
 
     res.status(201).json({ success: true, story: out });
   } catch (err) {
-    console.error("create story error:", err);
-    if (file?.filename) await unlinkFiles([`/uploads/stories/${file.filename}`]).catch(() => {});
+    // Error("create story error:", err);
+    if (file?.filename) await cloudinaryUtils.deleteFile(file.filename).catch(() => {});
     res.status(500).json({ success: false, error: err.message });
   }
 };
@@ -207,7 +205,7 @@ exports.listFeed = async (req, res) => {
 
     res.json({ success: true, items: Array.from(byUser.values()) });
   } catch (err) {
-    console.error("listFeed error:", err);
+    // Error("listFeed error:", err);
     res.status(500).json({ success: false, error: err.message });
   }
 };
@@ -239,7 +237,7 @@ exports.listForUser = async (req, res) => {
 
     res.json({ success: true, stories: stories.map(sanitizeStory) });
   } catch (err) {
-    console.error("listForUser error:", err);
+    // Error("listForUser error:", err);
     res.status(500).json({ success: false, error: err.message });
   }
 };
@@ -276,7 +274,7 @@ exports.activeForUsers = async (req, res) => {
 
     res.json({ success: true, map: counts });
   } catch (err) {
-    console.error("activeForUsers error:", err);
+    // Error("activeForUsers error:", err);
     res.status(500).json({ success: false, error: err.message });
   }
 };
@@ -340,7 +338,7 @@ exports.unseenForUsers = async (req, res) => {
 
     res.json({ success: true, map: out });
   } catch (err) {
-    console.error("unseenForUsers error:", err);
+    // Error("unseenForUsers error:", err);
     res.status(500).json({ success: false, error: err.message });
   }
 };
@@ -381,7 +379,7 @@ exports.markView = async (req, res) => {
 
     res.json({ success: true, newlyViewed });
   } catch (err) {
-    console.error("markView error:", err);
+    // Error("markView error:", err);
     res.status(500).json({ success: false, error: err.message });
   }
 };
@@ -417,7 +415,7 @@ exports.listViews = async (req, res) => {
 
     res.json({ success: true, total, count: items.length, items });
   } catch (err) {
-    console.error("listViews error:", err);
+    // Error("listViews error:", err);
     res.status(500).json({ success: false, error: err.message });
   }
 };
@@ -528,7 +526,7 @@ exports.react = async (req, res) => {
       userLiked,
     });
   } catch (err) {
-    console.error("react error:", err);
+    // Error("react error:", err);
     res.status(500).json({ success: false, error: err.message });
   }
 };
@@ -579,7 +577,7 @@ exports.listReactions = async (req, res) => {
       })),
     });
   } catch (err) {
-    console.error("listReactions error:", err);
+    // Error("listReactions error:", err);
     res.status(500).json({ success: false, error: err.message });
   }
 };
@@ -596,8 +594,9 @@ exports.remove = async (req, res) => {
     const url = s.url;
     await s.deleteOne();
 
-    if (url && url.startsWith("/uploads/")) {
-      unlinkFiles([url]).catch(() => {});
+    if (url && url.includes("cloudinary.com")) {
+      const publicId = cloudinaryUtils.getPublicIdFromUrl(url);
+      if (publicId) cloudinaryUtils.deleteFile(publicId).catch(() => {});
     }
 
     const io = req.app.get("io");
@@ -605,7 +604,7 @@ exports.remove = async (req, res) => {
 
     res.json({ success: true });
   } catch (err) {
-    console.error("delete story error:", err);
+    // Error("delete story error:", err);
     res.status(500).json({ success: false, error: err.message });
   }
 };

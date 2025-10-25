@@ -14,12 +14,12 @@
 
 - 🔐 **Multi-Auth**: Local + Google OAuth with secure password reset
 - 📱 **Real-time**: Live messaging, video calls, and instant notifications  
-- 🎬 **Content**: Posts, Reels (TikTok-style), Stories, and Status updates
+- 🎬 **Content**: Posts, Reels, Stories, and Status updates
 - 👥 **Social**: Follow system, live search, and enhanced profiles
 - 🛡️ **Moderation**: Advanced admin dashboard with auto-moderation
 - 🔄 **Multi-Account**: Switch between accounts without logout
 
---- 
+---              
 
 ## 📋 Table of Contents
 
@@ -221,8 +221,13 @@ JWT_SECRET=your_jwt_secret
 # CORS & Frontend
 FRONTEND_URL=http://localhost:5173
 
-# File Uploads
+# File Uploads (Legacy - will be replaced by Cloudinary)
 UPLOADS_DIR=./uploads
+
+# Cloudinary Configuration
+CLOUDINARY_CLOUD_NAME=your_cloudinary_cloud_name
+CLOUDINARY_API_KEY=your_cloudinary_api_key
+CLOUDINARY_API_SECRET=your_cloudinary_api_secret
 
 # Email Configuration (optional - logs to console if missing)
 GMAIL_USER=your.gmail@gmail.com
@@ -367,44 +372,55 @@ Update your production environment variables:
 
 ## 📁 File Uploads
 
-### 📂 Directory Structure
-```
-/uploads/
-├── profileImages/    # User profile pictures and banners
-├── posts/           # Post media (images, videos, documents)
-├── chat/            # Message attachments
-├── reports/         # Report attachments (images, PDFs)
-├── stories/         # Story media (24h expiry)
-└── reels/           # Short-form videos
-```
+### ☁️ Cloudinary Integration
+
+The application uses **Cloudinary** for all media storage, providing:
+
+- **Global CDN**: Fast delivery worldwide with edge locations
+- **Automatic Optimization**: Images and videos optimized automatically
+- **Multiple Formats**: Auto-selection of best format (WebP, AVIF, etc.)
+- **Transformations**: On-the-fly image/video processing
+- **Scalability**: No server storage limitations
 
 ### 📏 File Size Limits
 
 | Content Type | File Types | Max Size | Max Files | Special Notes |
 |--------------|------------|----------|-----------|---------------|
 | **Profile Images** | Images only | 5MB | 1 | Profile pictures and banners |
-| **Posts** | Images, Videos | 50MB/file | 5 files | Rich media posts |
-| **Chat Attachments** | Images, Videos | 25MB/file | 6 files | Message attachments |
+| **Posts** | Images, Videos, Documents | 50MB/file | 5 files | Rich media posts |
+| **Chat Attachments** | Images, Videos, Documents | 25MB/file | 6 files | Message attachments |
 | **Reports** | Images, PDFs | 5MB/file | Multiple | Report evidence |
 | **Stories** | Images, Videos | 30MB/file | 1 | ≤ 15s video length |
 | **Reels** | Videos only | 200MB/file | 1 | ≤ 60s, vertical preferred |
 
 ### 🔧 Technical Details
 
-- **Static Serving**: Files served by Express with caching headers
+- **Cloud Storage**: All files stored in Cloudinary with organized folders
 - **Validation**: Server-side file type and size validation
 - **Video Processing**: ffprobe-static for metadata validation
-- **Cleanup**: Automatic file deletion on user/content deletion
+- **Cleanup**: Automatic file deletion from Cloudinary on content deletion
 - **Security**: File type restrictions and size limits
+- **CDN Delivery**: Global edge locations for fast loading
 
 ### 🗑️ Automatic Cleanup
 
 When users or content are deleted, the system automatically:
-- Removes associated media files
+- Removes associated media files from Cloudinary
 - Cleans up profile images and banners
 - Removes story and reel media
 - Updates follower/following references
 - Maintains database integrity
+
+### 🚀 Migration from Local Storage
+
+If migrating from local file storage:
+
+```bash
+cd server
+npm run migrate-cloudinary
+```
+
+See `server/CLOUDINARY_INTEGRATION.md` for detailed migration instructions.
 
 ---
 

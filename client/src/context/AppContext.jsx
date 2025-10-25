@@ -148,7 +148,7 @@ export function AppProvider({ children }) {
     });
 
     newSocket.on("connect_error", (err) =>
-      console.error("❌ Socket connect error:", err?.message || err)
+      // Error("❌ Socket connect error:", err?.message || err)
     );
     newSocket.on("disconnect", (reason) =>
       console.warn("⚠ Socket disconnected:", reason)
@@ -171,7 +171,7 @@ export function AppProvider({ children }) {
       const res = await API.get("/posts");
       setPosts(res.data);
     } catch (err) {
-      console.error("Load posts error:", err);
+      // Error("Load posts error:", err);
     } finally {
       setLoading(false);
     }
@@ -188,7 +188,7 @@ export function AppProvider({ children }) {
           : list.filter((n) => !n.read).length
       );
     } catch (e) {
-      console.error("Load notifications error:", e);
+      // Error("Load notifications error:", e);
     }
   };
 
@@ -204,7 +204,7 @@ export function AppProvider({ children }) {
       );
       setNotifUnread((c) => Math.max(0, c - 1));
     } catch (e) {
-      console.error("markNotifRead error:", e);
+      // Error("markNotifRead error:", e);
     }
   };
 
@@ -220,7 +220,7 @@ export function AppProvider({ children }) {
       );
       setNotifUnread(0);
     } catch (e) {
-      console.error("markAllNotifsRead error:", e);
+      // Error("markAllNotifsRead error:", e);
     }
   };
 
@@ -231,7 +231,7 @@ export function AppProvider({ children }) {
       setNotifications((prev) => prev.filter((x) => x._id !== id));
       if (n && !n.read) setNotifUnread((c) => Math.max(0, c - 1));
     } catch (e) {
-      console.error("deleteNotif error:", e);
+      // Error("deleteNotif error:", e);
     }
   };
 
@@ -241,7 +241,7 @@ export function AppProvider({ children }) {
       setNotifications([]);
       setNotifUnread(0);
     } catch (e) {
-      console.error("clearAllNotifs error:", e);
+      // Error("clearAllNotifs error:", e);
     }
   };
 

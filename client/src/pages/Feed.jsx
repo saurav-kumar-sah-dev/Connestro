@@ -95,7 +95,7 @@ export default function Feed() {
       const res = await API.get("/posts");
       setPosts(uniquePosts(res.data));
     } catch (err) {
-      console.error("Failed to load posts:", err);
+      // Error("Failed to load posts:", err);
     } finally {
       setLoading(false);
     }

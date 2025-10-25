@@ -3,7 +3,7 @@ const Post = require("../models/Post");
 const User = require("../models/User");
 const Notification = require("../models/Notification");
 const mongoose = require("mongoose");
-const { unlinkMedia } = require("../lib/uploads");
+const { cloudinaryUtils } = require("../lib/cloudinary");
 
 // Normalize visibility
 const normalizeVisibility = (v) =>
@@ -37,7 +37,7 @@ function emitToAudience(io, onlineUsers, post, eventName) {
       }
     }
   } catch (e) {
-    console.error("emitToAudience error:", e.message);
+    // emitToAudience error - silently fail
   }
 }
 
@@ -47,6 +47,7 @@ exports.createPost = async (req, res) => {
   const files = req.files || [];
   const io = req.app.get("io");
   const onlineUsers = req.app.get("onlineUsers");
+
 
   try {
     if (!content && !files.length && !links) {
@@ -59,11 +60,12 @@ exports.createPost = async (req, res) => {
       if (file.mimetype?.startsWith("image/")) type = "image";
       else if (file.mimetype?.startsWith("video/")) type = "video";
       media.push({
-        url: `/uploads/posts/${file.filename}`,
+        url: file.path, // Cloudinary URL
         type,
         name: file.originalname || "",
         sizeBytes: Number(file.size) || 0,
         mime: file.mimetype || "",
+        publicId: file.filename, // Cloudinary public ID
       });
     });
     if (links) {
@@ -91,7 +93,7 @@ exports.createPost = async (req, res) => {
     emitToAudience(io, onlineUsers, post, "newPost");
     res.status(201).json(post);
   } catch (err) {
-    console.error("❌ Create Post Error:", err);
+    // Create Post Error
     res.status(500).json({ error: err.message });
   }
 };
@@ -325,13 +327,13 @@ exports.replyToComment = async (req, res) => {
         io?.to(String(commentAuthorId)).emit("notification:new", populatedNotif);
       } catch (e) {
         // do not fail the reply if notification fails
-        console.error("reply notification error:", e.message);
+        // reply notification error - silently fail
       }
     }
 
     res.json({ reply: newReply });
   } catch (err) {
-    console.error("replyToComment error:", err);
+    // replyToComment error
     res.status(500).json({ error: err.message });
   }
 };
@@ -405,13 +407,13 @@ exports.reactToReply = async (req, res) => {
         io?.to(String(replyAuthorId)).emit("notification:new", populatedNotif);
       } catch (e) {
         // don't fail the main action if notification fails
-        console.error("reply_reaction notification error:", e.message);
+        // reply_reaction notification error - silently fail
       }
     }
 
     res.json(updatedReply);
   } catch (err) {
-    console.error("reactToReply error:", err);
+    // reactToReply error
     res.status(500).json({ error: err.message });
   }
 };
@@ -424,8 +426,8 @@ exports.deletePost = async (req, res) => {
     if (!post) return res.status(404).json({ error: "Post not found" });
     if (String(post.user) !== String(req.user.id)) return res.status(403).json({ error: "Not authorized" });
 
-    // unlink media
-    await unlinkMedia(post.media || []);
+    // delete media from Cloudinary
+    await cloudinaryUtils.deleteMedia(post.media || []);
 
     await User.findByIdAndUpdate(post.user, { $pull: { posts: post._id } });
     await post.deleteOne();
@@ -471,7 +473,7 @@ exports.getPostById = async (req, res) => {
 
     res.json(post);
   } catch (err) {
-    console.error("Failed to get post:", err);
+    // Failed to get post
     res.status(500).json({ error: err.message });
   }
 };
@@ -538,7 +540,7 @@ exports.updatePost = async (req, res) => {
     if (content !== undefined) post.content = content;
 
     if (removeOldMedia === "true" || removeOldMedia === true) {
-      await unlinkMedia(post.media || []);
+      await cloudinaryUtils.deleteMedia(post.media || []);
       post.media = [];
     }
 
@@ -547,11 +549,12 @@ exports.updatePost = async (req, res) => {
       if (file.mimetype?.startsWith("image/")) type = "image";
       else if (file.mimetype?.startsWith("video/")) type = "video";
       post.media.push({
-        url: `/uploads/posts/${file.filename}`,
+        url: file.path, // Cloudinary URL
         type,
         name: file.originalname || "",
         sizeBytes: Number(file.size) || 0,
         mime: file.mimetype || "",
+        publicId: file.filename, // Cloudinary public ID
       });
     });
 
@@ -568,7 +571,7 @@ exports.updatePost = async (req, res) => {
     emitToAudience(io, onlineUsers, post, "updatePost");
     res.json(post);
   } catch (err) {
-    console.error("❌ Update Post Error:", err);
+    // Update Post Error
     res.status(500).json({ error: err.message });
   }
 };
@@ -582,7 +585,7 @@ exports.getDrafts = async (req, res) => {
       .populate("comments.replies.user", "username profileImage");
     res.status(200).json(drafts);
   } catch (err) {
-    console.error("Get drafts error:", err);
+    // Get drafts error
     res.status(500).json({ message: "Failed to fetch drafts" });
   }
 };
@@ -612,7 +615,7 @@ exports.publishDraft = async (req, res) => {
 
     res.json(post);
   } catch (err) {
-    console.error("Publish draft error:", err);
+    // Publish draft error
     res.status(500).json({ error: err.message });
   }
 };
@@ -677,7 +680,7 @@ exports.canUsersView = async (req, res) => {
     }
     return res.json({ success: true, map });
   } catch (err) {
-    console.error("canUsersView (post) error:", err);
+    // canUsersView (post) error
     res.status(500).json({ success: false, error: err.message });
   }
 };

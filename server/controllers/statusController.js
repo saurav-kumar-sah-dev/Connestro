@@ -69,7 +69,7 @@ exports.setStatus = async (req, res) => {
       status: sanitizeStatus(user, userId), // owner gets their full visible status
     });
   } catch (err) {
-    console.error("setStatus error:", err);
+    // Error("setStatus error:", err);
     return res.status(500).json({ success: false, error: err.message });
   }
 };
@@ -95,7 +95,7 @@ exports.clearStatus = async (req, res) => {
 
     return res.json({ success: true });
   } catch (err) {
-    console.error("clearStatus error:", err);
+    // Error("clearStatus error:", err);
     return res.status(500).json({ success: false, error: err.message });
   }
 };

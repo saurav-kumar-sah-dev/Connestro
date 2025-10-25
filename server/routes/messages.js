@@ -18,8 +18,8 @@ const {
   clearConversationForMe
 } = require("../controllers/messageController");
 
-const { makeUploader } = require("../lib/uploads");
-const upload = makeUploader({ subdir: 'chat', allow: 'images+videos', fileSizeMB: 25 });
+const { uploaders } = require("../lib/cloudinary");
+const upload = uploaders.chat;
 
 // Conversations
 router.get("/conversations", auth, getConversations);

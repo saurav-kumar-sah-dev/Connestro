@@ -121,7 +121,7 @@ exports.googleAuth = async (req, res) => {
     if (err.code === "TERMS_NOT_ACCEPTED") {
       return res.status(403).json({ msg: err.message, code: err.code });
     }
-    console.error("Google auth error:", err);
+    // Error("Google auth error:", err);
     return res.status(500).json({ msg: "Google login failed" });
   }
 };

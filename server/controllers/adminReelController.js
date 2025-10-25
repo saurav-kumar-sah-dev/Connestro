@@ -3,7 +3,7 @@ const { Reel } = require("../models/Reel"); // FIX: named export
 const User = require("../models/User");
 const AdminAuditLog = require("../models/AdminAuditLog");
 const Notification = require("../models/Notification");
-const { unlinkFiles } = require("../lib/uploads");
+const { cloudinaryUtils } = require("../lib/cloudinary");
 
 exports.getAllReels = async (req, res) => {
   try {
@@ -32,7 +32,7 @@ exports.getAllReels = async (req, res) => {
 
     res.json({ success: true, page, limit, total, totalPages: Math.ceil(total / limit), reels });
   } catch (e) {
-    console.error("getAllReels error:", e);
+    // Error("getAllReels error:", e);
     res.status(500).json({ success: false, error: e.message });
   }
 };
@@ -113,10 +113,11 @@ exports.deleteReelByAdmin = async (req, res) => {
       io?.to(String(ownerId)).emit("notification:new", populated);
     } catch {}
 
-    // delete media file if local
+    // delete media file from Cloudinary
     const url = reel.url;
-    if (url && url.startsWith("/uploads/")) {
-      unlinkFiles([url]).catch(() => {});
+    if (url && url.includes("cloudinary.com")) {
+      const publicId = cloudinaryUtils.getPublicIdFromUrl(url);
+      if (publicId) cloudinaryUtils.deleteFile(publicId).catch(() => {});
     }
     await reel.deleteOne();
 

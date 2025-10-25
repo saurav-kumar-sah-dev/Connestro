@@ -175,7 +175,7 @@ exports.signup = async (req, res) => {
       },
     });
   } catch (err) {
-    console.error("Signup error:", err);
+    // Error("Signup error:", err);
     return res.status(500).json({ error: err.message });
   }
 };
@@ -251,7 +251,7 @@ exports.login = async (req, res) => {
       },
     });
   } catch (err) {
-    console.error("Login error:", err);
+    // Error("Login error:", err);
     return res.status(500).json({ error: err.message });
   }
 };
@@ -300,12 +300,12 @@ exports.forgotPassword = async (req, res) => {
       user.passwordResetToken = undefined;
       user.passwordResetExpires = undefined;
       await user.save({ validateBeforeSave: false });
-      console.error("sendEmail error:", err);
+      // Error("sendEmail error:", err);
     }
 
     return res.json(generic);
   } catch (err) {
-    console.error("Forgot password error:", err);
+    // Error("Forgot password error:", err);
     return res.status(500).json({ msg: "Server error" });
   }
 };
@@ -331,7 +331,7 @@ exports.verifyResetToken = async (req, res) => {
 
     return res.json({ valid: !!user });
   } catch (err) {
-    console.error("Verify reset token error:", err);
+    // Error("Verify reset token error:", err);
     return res.status(500).json({ valid: false, msg: "Server error" });
   }
 };
@@ -396,7 +396,7 @@ exports.resetPassword = async (req, res) => {
       },
     });
   } catch (err) {
-    console.error("Reset password error:", err);
+    // Error("Reset password error:", err);
     return res.status(500).json({ msg: "Server error" });
   }
 };

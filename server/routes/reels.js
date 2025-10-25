@@ -3,10 +3,10 @@ const express = require("express");
 const router = express.Router();
 const auth = require("../middleware/auth");
 const ctrl = require("../controllers/reelController");
-const { makeUploader } = require("../lib/uploads");
+const { uploaders } = require("../lib/cloudinary");
 
-// Videos only, 100MB max
-const upload = makeUploader({ subdir: "reels", allow: "images+videos", fileSizeMB: 100 });
+// Reels uploader with Cloudinary
+const upload = uploaders.reels;
 
 // Create reel (video) — accepts body.draft
 router.post("/", auth, upload.single("video"), ctrl.create);

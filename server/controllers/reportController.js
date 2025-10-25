@@ -58,10 +58,11 @@ exports.createReport = async (req, res) => {
 
     // Attachments (optional)
     const attachments = (req.files || []).map((f) => ({
-      url: `/uploads/reports/${f.filename}`,
+      url: f.path, // Cloudinary URL
       mime: f.mimetype,
       size: f.size,
       name: f.originalname,
+      publicId: f.filename, // Cloudinary public ID
     }));
 
     // 24h throttle window
@@ -237,7 +238,7 @@ exports.createReport = async (req, res) => {
       // Unique index hit (reporter+target). Note: your unique indexes block duplicates forever.
       return res.status(409).json({ msg: "You already reported this recently." });
     }
-    console.error("createReport error:", err);
+    // Error("createReport error:", err);
     res.status(500).json({ error: err.message });
   }
 };

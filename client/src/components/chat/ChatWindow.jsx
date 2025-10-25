@@ -186,7 +186,7 @@ export default function ChatWindow({ conversationId, conversation }) {
     try {
       await clearConversation(conversationId);
     } catch (e) {
-      console.error("clearConversation failed", e);
+      // Error("clearConversation failed", e);
       alert("Failed to clear conversation. Please try again.");
     }
   };

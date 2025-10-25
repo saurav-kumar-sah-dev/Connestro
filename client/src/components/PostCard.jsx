@@ -280,7 +280,7 @@ export default function PostCard({
         )
       );
     } catch (err) {
-      console.error("Like error:", err);
+      // Error("Like error:", err);
     } finally {
       setLoadingLike(false);
     }
@@ -307,7 +307,7 @@ export default function PostCard({
         follow: !isFollowing,
       });
     } catch (err) {
-      console.error("Follow/unfollow error:", err);
+      // Error("Follow/unfollow error:", err);
     } finally {
       setLoadingFollow(false);
     }
@@ -322,7 +322,7 @@ export default function PostCard({
       await API.post(`/posts/comment/${post._id}`, { text });
       setCommentText("");
     } catch (err) {
-      console.error("Comment error:", err);
+      // Error("Comment error:", err);
     }
   };
 
@@ -348,7 +348,7 @@ export default function PostCard({
         )
       );
     } catch (err) {
-      console.error("React error:", err.response?.data || err.message);
+      // Error("React error:", err.response?.data || err.message);
     }
   };
 
@@ -362,7 +362,7 @@ export default function PostCard({
       await API.post(`/posts/${post._id}/comment/${commentId}/reply`, { text });
       setReplyValue(commentId, "");
     } catch (err) {
-      console.error("Reply error:", err);
+      // Error("Reply error:", err);
     }
   };
 
@@ -395,7 +395,7 @@ export default function PostCard({
         )
       );
     } catch (err) {
-      console.error("Reply react error:", err);
+      // Error("Reply react error:", err);
     }
   };
 
@@ -405,7 +405,7 @@ export default function PostCard({
       await API.delete(`/posts/${post._id}`);
       setPosts((prev) => prev.filter((p) => p._id !== post._id));
     } catch (err) {
-      console.error("Delete error:", err);
+      // Error("Delete error:", err);
     }
   };
 
@@ -427,7 +427,7 @@ export default function PostCard({
       setEditMedia([]);
       setEditLink("");
     } catch (err) {
-      console.error("Edit error:", err);
+      // Error("Edit error:", err);
     }
   };
 
@@ -437,7 +437,7 @@ export default function PostCard({
       setPosts((prev) => prev.map((p) => (p._id === post._id ? res.data : p)));
       setShowMenu(false);
     } catch (e) {
-      console.error("Change audience error:", e);
+      // Error("Change audience error:", e);
     }
   };
 
@@ -450,7 +450,7 @@ export default function PostCard({
       setDrafts((prev) => prev.filter((p) => p._id !== post._id));
       setShowMenu(false);
     } catch (e) {
-      console.error("Publish error:", e);
+      // Error("Publish error:", e);
     }
   };
 
@@ -470,7 +470,7 @@ export default function PostCard({
       });
       alert("Report submitted. Thank you.");
     } catch (e) {
-      console.error("Report error:", e);
+      // Error("Report error:", e);
       alert(e.response?.data?.msg || "Failed to submit report");
     }
   };

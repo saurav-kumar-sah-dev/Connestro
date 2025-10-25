@@ -101,7 +101,7 @@ export default function Profile() {
         const res = await API.get(`/users/${id}`);
         if (isMounted) setUsers((prev) => ({ ...prev, [id]: res.data }));
       } catch (err) {
-        console.error("Load user error:", err);
+        // Error("Load user error:", err);
       } finally {
         if (isMounted) setLoading(false);
       }
@@ -145,7 +145,7 @@ export default function Profile() {
         const res = await API.get("/posts/drafts");
         setDrafts(Array.isArray(res.data) ? res.data : []);
       } catch (e) {
-        console.error("Failed to load drafts:", e);
+        // Error("Failed to load drafts:", e);
         setDrafts([]);
       }
     })();
@@ -315,7 +315,7 @@ export default function Profile() {
         setViewerOpen(true);
       }
     } catch (e) {
-      console.error("load user stories failed", e);
+      // Error("load user stories failed", e);
     }
   };
 
@@ -413,7 +413,7 @@ export default function Profile() {
                   socket?.disconnect();
                   navigate("/login");
                 } catch (err) {
-                  console.error("Delete account error:", err);
+                  // Error("Delete account error:", err);
                   alert("Failed to delete account. Try again.");
                 }
               }}
@@ -432,7 +432,7 @@ export default function Profile() {
                 try {
                   await toggleFollow(user);
                 } catch (err) {
-                  console.error(err);
+                  // Error(err);
                 }
               }}
               className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
@@ -461,7 +461,7 @@ export default function Profile() {
                   });
                   alert("Report submitted. Thank you.");
                 } catch (e) {
-                  console.error("Report error:", e);
+                  // Error("Report error:", e);
                   alert(e.response?.data?.msg || "Failed to submit report");
                 }
               }}

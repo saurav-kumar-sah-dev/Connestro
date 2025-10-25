@@ -4,7 +4,7 @@ const Conversation = require("../models/Conversation");
 const Message = require("../models/Message");
 const User = require("../models/User");
 const Notification = require("../models/Notification");
-const { unlinkFiles } = require("../lib/uploads");
+const { cloudinaryUtils } = require("../lib/cloudinary");
 
 const toId = (id) => new mongoose.Types.ObjectId(String(id));
 
@@ -106,7 +106,7 @@ exports.getOrCreateConversationWithUser = async (req, res) => {
 
     res.json({ conversation: populated });
   } catch (err) {
-    console.error("getOrCreateConversationWithUser error:", err);
+    // Error("getOrCreateConversationWithUser error:", err);
     res.status(err.status || 500).json({ error: err.message || "Server error" });
   }
 };
@@ -216,10 +216,11 @@ exports.sendMessage = async (req, res) => {
     // Build attachments
     const attachments = (req.files || []).map((f) => ({
       type: getAttachmentType(f.mimetype),
-      url: `/uploads/chat/${f.filename}`,
+      url: f.path, // Cloudinary URL
       mime: f.mimetype,
       size: f.size,
       name: f.originalname,
+      publicId: f.filename, // Cloudinary public ID
     }));
 
     if (!text && attachments.length === 0) {
@@ -342,7 +343,7 @@ exports.sendMessage = async (req, res) => {
 
     res.status(201).json({ message: populatedMsg });
   } catch (err) {
-    console.error("sendMessage error:", err);
+    // Error("sendMessage error:", err);
     res.status(500).json({ error: err.message });
   }
 };
@@ -416,7 +417,7 @@ exports.clearConversationForMe = async (req, res) => {
 
     res.json({ success: true });
   } catch (err) {
-    console.error("clearConversationForMe error:", err);
+    // Error("clearConversationForMe error:", err);
     res.status(500).json({ error: err.message });
   }
 };
@@ -483,9 +484,11 @@ exports.deleteForEveryone = async (req, res) => {
     if (!msg) return res.status(404).json({ msg: "Message not found" });
     if (String(msg.sender) !== String(meId)) return res.status(403).json({ msg: "Forbidden" });
 
-    // unlink local attachments
-    const urls = (msg.attachments || []).map((a) => a.url).filter((u) => typeof u === "string" && u.startsWith("/uploads/"));
-    if (urls.length) await unlinkFiles(urls);
+    // delete attachments from Cloudinary
+    const publicIds = (msg.attachments || [])
+      .map((a) => a.publicId || cloudinaryUtils.getPublicIdFromUrl(a.url))
+      .filter(Boolean);
+    if (publicIds.length) await cloudinaryUtils.deleteFiles(publicIds);
 
     msg.isDeleted = true;
     msg.text = "";

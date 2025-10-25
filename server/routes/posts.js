@@ -1,7 +1,5 @@
 // routes/posts.js
 const express = require("express");
-const multer = require("multer");
-const path = require("path");
 const router = express.Router();
 const {
   createPost,
@@ -22,10 +20,10 @@ const {
 } = require("../controllers/postController");
 const auth = require("../middleware/auth");
 
-// Multer setup for file uploads
-const { makeUploader } = require("../lib/uploads");
+// Cloudinary setup for file uploads
+const { uploaders } = require("../lib/cloudinary");
 // Allow images + videos + documents for posts
-const upload = makeUploader({ subdir: "posts", allow: "posts", fileSizeMB: 50 });
+const upload = uploaders.posts;
 
 // Create + list
 router.post("/", auth, upload.array("media", 5), createPost);

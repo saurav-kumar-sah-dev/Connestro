@@ -67,7 +67,7 @@ export function ChatProvider({ children }) {
         })
       );
     } catch (e) {
-      console.error("loadConversations error:", e);
+      // Error("loadConversations error:", e);
     } finally {
       setLoadingConvos(false);
     }
@@ -154,7 +154,7 @@ export function ChatProvider({ children }) {
             [conversationId]: applyPendingToList(conversationId, msgs),
           }));
         } catch (e) {
-          console.error(e);
+          // Error(e);
         }
       } else {
         // re-apply pending flags (in case events landed before open)
@@ -201,7 +201,7 @@ export function ChatProvider({ children }) {
         if (navigate) navigate(`/messages/${id}`);
         await openConversation(id);
       } catch (e) {
-        console.error("openConversationWithUser error:", e);
+        // Error("openConversationWithUser error:", e);
       }
     },
     [ensureConversationWithUser, openConversation]

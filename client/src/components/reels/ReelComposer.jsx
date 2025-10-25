@@ -42,7 +42,7 @@ export default function ReelComposer({ onClose, onUploaded }) {
       onUploaded?.(r || null);
       reset();
     } catch (e) {
-      console.error("createReel failed", e);
+      // Error("createReel failed", e);
       alert(e.response?.data?.msg || "Failed to upload reel");
     } finally {
       setUploading(false);

@@ -3,7 +3,7 @@ const mongoose = require("mongoose");
 const fs = require("fs");
 const path = require("path");
 const crypto = require("crypto");
-const { unlinkMedia, unlinkFiles } = require("../lib/uploads");
+const { cloudinaryUtils } = require("../lib/cloudinary");
 const Post = require("./Post");
 const Story = require("./Story");
 
@@ -206,7 +206,7 @@ userSchema.pre(
       const allUrls = [];
       for (const p of posts)
         for (const m of p.media || []) if (m?.url) allUrls.push(m.url);
-      if (allUrls.length) await unlinkFiles(allUrls);
+      if (allUrls.length) await cloudinaryUtils.deleteFiles(allUrls);
 
       // Delete user's own posts entirely
       await Post.deleteMany({ user: userId });
@@ -230,17 +230,21 @@ userSchema.pre(
       const stories = await Story.find({ user: userId }).select("url").lean();
       const storyUrls = stories
         .map((s) => s?.url)
-        .filter((u) => typeof u === "string" && u.startsWith("/uploads/"));
-      if (storyUrls.length) await unlinkFiles(storyUrls);
+        .filter((u) => typeof u === "string" && u.includes("cloudinary.com"));
+      if (storyUrls.length) {
+        const publicIds = storyUrls.map(url => cloudinaryUtils.getPublicIdFromUrl(url)).filter(Boolean);
+        if (publicIds.length) await cloudinaryUtils.deleteFiles(publicIds);
+      }
       await Story.deleteMany({ user: userId });
 
-      // delete profile images/banners (if local)
+      // delete profile images/banners from Cloudinary
       const toRemove = [];
-      if (this.profileImage && this.profileImage.startsWith("/uploads/"))
-        toRemove.push(this.profileImage);
-      if (this.profileBanner && this.profileBanner.startsWith("/uploads/"))
-        toRemove.push(this.profileBanner);
-      if (toRemove.length) await unlinkFiles(toRemove);
+      if (this.profileImage && this.profileImage.includes("cloudinary.com"))
+        toRemove.push(cloudinaryUtils.getPublicIdFromUrl(this.profileImage));
+      if (this.profileBanner && this.profileBanner.includes("cloudinary.com"))
+        toRemove.push(cloudinaryUtils.getPublicIdFromUrl(this.profileBanner));
+      const validPublicIds = toRemove.filter(Boolean);
+      if (validPublicIds.length) await cloudinaryUtils.deleteFiles(validPublicIds);
 
       next();
     } catch (err) {

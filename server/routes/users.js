@@ -24,15 +24,11 @@ const {
 // Status controller
 const { setStatus, clearStatus } = require("../controllers/statusController");
 
-// Centralized uploader
-const { makeUploader } = require("../lib/uploads");
+// Cloudinary uploader
+const { uploaders } = require("../lib/cloudinary");
 
-// Images only, 5 MB max, saved under UPLOADS_DIR/profileImages
-const uploadProfileImage = makeUploader({
-  subdir: "profileImages",
-  allow: "images",
-  fileSizeMB: 5,
-});
+// Profile image uploader with Cloudinary
+const uploadProfileImage = uploaders.profileImage;
 
 
 router.get("/search", auth, searchUsers);

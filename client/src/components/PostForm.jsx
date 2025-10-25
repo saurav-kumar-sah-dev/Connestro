@@ -59,7 +59,7 @@ export default function PostForm({ currentUser }) {
       }
       return res.data;
     } catch (err) {
-      console.error("Failed to post:", err);
+      // Error("Failed to post:", err);
       alert("Failed to post. Please try again.");
     }
   };

@@ -6,8 +6,8 @@ const multer = require("multer");
 const path = require("path");
 const ctrl = require("../controllers/reportController");
 
-const { makeUploader } = require("../lib/uploads");
-const upload = makeUploader({ subdir: 'reports', allow: 'reports', fileSizeMB: 5 });
+const { uploaders } = require("../lib/cloudinary");
+const upload = uploaders.reports;
 
 // Create a report (post or user) with optional attachments
 router.post("/", auth, upload.array("attachments", 5), ctrl.createReport);

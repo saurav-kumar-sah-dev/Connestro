@@ -3,7 +3,7 @@ const User = require("../models/User");
 const Post = require("../models/Post");
 const AdminAuditLog = require("../models/AdminAuditLog");
 const Notification = require("../models/Notification");
-const { unlinkMedia } = require("../lib/uploads");
+const { cloudinaryUtils } = require("../lib/cloudinary");
 const { Reel } = require("../models/Reel"); 
 
 
@@ -235,7 +235,7 @@ exports.deletePostByAdmin = async (req, res) => {
     } catch {}
 
     // unlink media
-    await unlinkMedia(post.media || []);
+    await cloudinaryUtils.deleteMedia(post.media || []);
 
     await User.findByIdAndUpdate(ownerId, { $pull: { posts: post._id } });
     await post.deleteOne();
