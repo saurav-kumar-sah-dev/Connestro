@@ -18,6 +18,7 @@
 - 👥 **Social**: Follow system, live search, and enhanced profiles
 - 🛡️ **Moderation**: Advanced admin dashboard with auto-moderation
 - 🔄 **Multi-Account**: Switch between accounts without logout
+- ☁️ **Cloudinary CDN**: Global media delivery with automatic optimization
 
 ---              
 
@@ -107,9 +108,9 @@
 - **Database**: MongoDB with Mongoose ODM
 - **Real-time**: Socket.IO for live communication
 - **Authentication**: JWT (JSON Web Tokens)
-- **File Uploads**: Multer for multipart form handling
+- **Media Storage**: Cloudinary CDN with automatic optimization
+- **File Uploads**: Multer-Storage-Cloudinary for cloud handling
 - **Email Service**: Nodemailer with Gmail SMTP
-- **Video Processing**: ffprobe-static for metadata validation
 - **OAuth**: Google Auth Library for social login
 
 ### 🎨 Frontend
@@ -221,10 +222,7 @@ JWT_SECRET=your_jwt_secret
 # CORS & Frontend
 FRONTEND_URL=http://localhost:5173
 
-# File Uploads (Legacy - will be replaced by Cloudinary)
-UPLOADS_DIR=./uploads
-
-# Cloudinary Configuration
+# Cloudinary Configuration (Required for media storage)
 CLOUDINARY_CLOUD_NAME=your_cloudinary_cloud_name
 CLOUDINARY_API_KEY=your_cloudinary_api_key
 CLOUDINARY_API_SECRET=your_cloudinary_api_secret
@@ -277,6 +275,7 @@ VITE_CALL_RING_TIMEOUT_SEC=30
 
 ### 📝 Important Notes
 
+- **Cloudinary Setup**: Required for all media storage - get free account at [cloudinary.com](https://cloudinary.com)
 - **Gmail Setup**: Use an App Password (not your regular password)
 - **Google OAuth**: Create OAuth Web Client ID and add `http://localhost:5173` to authorized origins
 - **MongoDB**: Use local MongoDB or MongoDB Atlas for cloud database
@@ -338,7 +337,7 @@ npm run preview
 ### 🖥️ Backend Deployment
 
 1. **Server Requirements**
-   - Keep Express serving `/uploads` directory
+   - Configure Cloudinary credentials for media storage
    - Configure CORS for production domains
    - Set up proper environment variables
 
@@ -366,6 +365,7 @@ Update your production environment variables:
 - `FRONTEND_URL`: Your production frontend URL
 - `MONGO_URI`: Production MongoDB connection string
 - `JWT_SECRET`: Strong production secret
+- `CLOUDINARY_*`: Your Cloudinary credentials for media storage
 - `GMAIL_USER` & `GMAIL_APP_PASSWORD`: Production email credentials
 
 ---
@@ -421,6 +421,16 @@ npm run migrate-cloudinary
 ```
 
 See `server/CLOUDINARY_INTEGRATION.md` for detailed migration instructions.
+
+### ☁️ Cloudinary Benefits
+
+- **Global CDN**: 99.9% uptime with edge locations worldwide
+- **Automatic Optimization**: Images converted to WebP/AVIF for faster loading
+- **Smart Cropping**: AI-powered image transformations
+- **Video Processing**: Automatic format optimization and compression
+- **Unlimited Storage**: No file size or quantity restrictions
+- **Real-time Transformations**: On-the-fly image/video processing
+- **Security**: Built-in virus scanning and content moderation
 
 ---
 
@@ -602,22 +612,38 @@ See `server/CLOUDINARY_INTEGRATION.md` for detailed migration instructions.
 ---
 
 ## 🐛 Troubleshooting
-- Video upload “Could not read metadata”:
+
+### 📁 Media Upload Issues
+- **Cloudinary upload fails**: 
+  - Verify your Cloudinary credentials in `.env`
+  - Check Cloudinary dashboard for usage limits
+  - Ensure file size is within limits (see File Uploads section)
+- **Images not loading**: 
+  - Check Cloudinary URL format in database
+  - Verify CORS settings for your domain
+  - Check if Cloudinary account is active
+
+### 🎬 Video Issues
+- Video upload "Could not read metadata":
   - Client falls back gracefully; server ffprobe validates length/codec.
   - Prefer H.264 MP4/WebM; HEVC may not play on all browsers.
 - Reels autoplay muted on mobile:
   - This is expected browser behavior. Unmute toggles sound.
+
+### 🎨 UI Issues
 - Close (X) not working in Story viewer:
   - Ensure latest layering/z-index in StoryViewer.jsx.
 - Rings not showing for someone you follow:
   - Followers-only visibility requires you follow the owner.
   - Rings use /stories/active filtered by viewer visibility.
-- “s is not defined” or regex errors:
+
+### 🔧 Technical Issues
+- "s is not defined" or regex errors:
   - Use the safe escapeRegex pattern above.
 - CORS:
   - Update allowedOrigins in server/server.js for your deployment domains.
 - Gmail SMTP:
-  - Must use an App Password; don’t use your normal Gmail password.
+  - Must use an App Password; don't use your normal Gmail password.
 
 ---
 
@@ -626,7 +652,7 @@ See `server/CLOUDINARY_INTEGRATION.md` for detailed migration instructions.
 - Swipe gestures for stories on mobile (left/right)
 - Preload next/prev story media for smoother transitions
 - Admin moderation for stories and reels
-- CDN integration for /uploads
+- Advanced Cloudinary transformations (AI cropping, auto-tagging)
 - Per-user storage quotas
 - Reels templates (trim/crop), background music mix, speed controls
 - Trending reels with hashtags and sounds
@@ -665,6 +691,7 @@ Contributions are welcome! Please feel free to submit a Pull Request. For major 
 - React team for the amazing framework
 - Socket.IO for real-time communication
 - MongoDB for the flexible database
+- Cloudinary for enterprise-grade media storage and CDN
 - Vercel for hosting the frontend
 - All the open-source contributors who made this possible
 
