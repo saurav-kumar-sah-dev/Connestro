@@ -147,9 +147,9 @@ export function AppProvider({ children }) {
       // Connected, no log
     });
 
-    newSocket.on("connect_error", (err) =>
-      // Error("❌ Socket connect error:", err?.message || err)
-    );
+    newSocket.on("connect_error", (err) => {
+      // Socket connect error - handled silently
+    });
     newSocket.on("disconnect", (reason) =>
       console.warn("⚠ Socket disconnected:", reason)
     );
