@@ -30,6 +30,7 @@ export default function ReelCommentsDrawer({ open, onClose, reelId }) {
   const [err, setErr] = useState("");
   const [replyText, setReplyText] = useState({}); // { [commentId]: string }
   const [sending, setSending] = useState(false);
+  const [expandedReplies, setExpandedReplies] = useState({}); // { [commentId]: boolean }
   const navigate = useNavigate();
 
   const meId = useMemo(() => {
@@ -321,8 +322,17 @@ export default function ReelCommentsDrawer({ open, onClose, reelId }) {
                           className="px-2 py-0.5 rounded hover:bg-gray-100"
                           title="Reply"
                         >
-                          Reply
+                          {replyText[c._id] !== undefined ? "Close" : "Reply"}
                         </button>
+                        {Array.isArray(c.replies) && c.replies.length > 0 && (
+                          <button
+                            onClick={() => setExpandedReplies((prev) => ({ ...prev, [c._id]: !prev[c._id] }))}
+                            className="px-2 py-0.5 rounded hover:bg-gray-100"
+                            title="Toggle replies"
+                          >
+                            {expandedReplies[c._id] ? "Hide replies" : `View replies (${c.replies.length})`}
+                          </button>
+                        )}
                       </div>
 
                       {/* Reply input */}
@@ -342,11 +352,18 @@ export default function ReelCommentsDrawer({ open, onClose, reelId }) {
                           >
                             Send
                           </button>
+                          <button
+                            onClick={() => setReplyVal(c._id, undefined)}
+                            type="button"
+                            className="px-3 py-1 rounded border text-sm hover:bg-gray-100"
+                          >
+                            Cancel
+                          </button>
                         </div>
                       )}
 
                       {/* Replies */}
-                      {Array.isArray(c.replies) && c.replies.length > 0 && (
+                      {Array.isArray(c.replies) && c.replies.length > 0 && expandedReplies[c._id] && (
                         <div className="mt-3 space-y-2">
                           {c.replies.map((r) => {
                             const ru = r?.user || {};
