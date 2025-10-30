@@ -69,9 +69,7 @@ router.put("/:id/unfollow", auth, unfollowUser);
 router.get("/:id/followers", auth, getFollowers);
 router.get("/:id/following", auth, getFollowing);
 
-
 router.get("/:id", auth, getUserProfile);
-
 
 router.delete("/delete", auth, deleteUser);
 

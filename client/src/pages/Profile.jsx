@@ -59,6 +59,8 @@ export default function Profile() {
     Array.isArray(user?.followers) &&
     user.followers.map((f) => (f?._id ? f._id : f)).includes(currentUser.id);
 
+  const canInteract = user?.canInteract !== false;
+
   // Stable hooks BEFORE conditional returns
   const typeMap = useMemo(
     () => ({ images: "image", videos: "video", documents: "document", links: "link" }),
@@ -364,22 +366,22 @@ export default function Profile() {
 
         {/* Followers / Following */}
         <p
-          className="mb-1 cursor-pointer hover:underline text-slate-700 dark:text-slate-300"
-          onClick={() =>
+          className="mb-1 text-slate-700 dark:text-slate-300 cursor-pointer hover:underline"
+          onClick={() => {
             navigate(`/profile/${user._id}/followers`, {
               state: { type: "followers" },
-            })
-          }
+            });
+          }}
         >
           <strong>Followers:</strong> {user.followers?.length || 0}
         </p>
         <p
-          className="mb-3 cursor-pointer hover:underline text-slate-700 dark:text-slate-300"
-          onClick={() =>
+          className="mb-3 text-slate-700 dark:text-slate-300 cursor-pointer hover:underline"
+          onClick={() => {
             navigate(`/profile/${user._id}/following`, {
               state: { type: "following" },
-            })
-          }
+            });
+          }}
         >
           <strong>Following:</strong> {user.following?.length || 0}
         </p>
@@ -427,6 +429,7 @@ export default function Profile() {
             <button onClick={() => setShowEnhancedModal(true)} className="px-4 py-2 rounded-lg bg-purple-600 text-white hover:bg-purple-700">
               View Details
             </button>
+            
             <button
               onClick={async () => {
                 try {
@@ -443,6 +446,7 @@ export default function Profile() {
             >
               {isFollowing ? "Unfollow" : "Follow"}
             </button>
+            
 
             <button
               onClick={async () => {
@@ -472,7 +476,9 @@ export default function Profile() {
             </button>
 
             <button
-              onClick={() => openConversationWithUser(user._id, navigate)}
+              onClick={async () => {
+                await openConversationWithUser(user._id, navigate);
+              }}
               className="px-4 py-2 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700"
             >
               Message
@@ -507,6 +513,7 @@ export default function Profile() {
             onCleared={() => setUsers((prev) => ({ ...prev, [id]: { ...prev[id], status: null } }))}
           />
         )}
+
       </div>
 
       {/* Tabs */}

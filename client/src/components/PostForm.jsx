@@ -23,9 +23,22 @@ export default function PostForm({ currentUser }) {
   const [visibility, setVisibility] = useState("public");
 
   const handleFileChange = (e) => {
-    if (type === "image" || type === "video" || type === "document") {
-      setMedia([...e.target.files]);
+    const files = Array.from(e.target.files || []);
+    if (!(type === "image" || type === "video" || type === "document")) return;
+
+    if (type === "image") {
+      if (files.length > 5) {
+        alert("You can send up to 5 images at a time.");
+      }
+      setMedia(files.slice(0, 5));
+      return;
     }
+
+    // For video/document allow only a single file
+    if (files.length > 1) {
+      alert("You can upload only one file for videos/documents.");
+    }
+    setMedia(files.slice(0, 1));
   };
 
   const send = async (asDraft = false) => {
@@ -171,7 +184,7 @@ export default function PostForm({ currentUser }) {
           <div className="relative">
             <input
               type="file"
-              multiple
+              multiple={type === "image"}
               onChange={handleFileChange}
               accept={
                 type === "image"
@@ -182,6 +195,9 @@ export default function PostForm({ currentUser }) {
               }
               className="block w-full text-sm text-gray-700 dark:text-gray-300 file:mr-4 file:px-6 file:py-3 file:rounded-xl file:border-0 file:bg-gradient-to-r file:from-blue-600 file:to-purple-600 file:text-white file:font-semibold hover:file:from-blue-700 hover:file:to-purple-700 file:cursor-pointer file:shadow-md file:transition-all border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-xl p-4 hover:border-blue-400 dark:hover:border-blue-500 transition-all"
             />
+            {type === "image" && (
+              <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">Max 5 images per post.</p>
+            )}
           </div>
           {media.length > 0 && (
             <div className="mt-3 flex flex-wrap gap-2">

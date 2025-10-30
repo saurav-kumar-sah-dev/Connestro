@@ -54,6 +54,14 @@ exports.createPost = async (req, res) => {
       return res.status(400).json({ error: "Post cannot be empty" });
     }
 
+    // Enforce: multiple uploads are only allowed for images
+    const hasNonImage = files.some((f) => !(f.mimetype && f.mimetype.startsWith("image/")));
+    if (files.length > 1 && hasNonImage) {
+      return res
+        .status(400)
+        .json({ error: "Multiple files are only allowed for images" });
+    }
+
     const media = [];
     files.forEach((file) => {
       let type = "document";
@@ -542,6 +550,14 @@ exports.updatePost = async (req, res) => {
     if (removeOldMedia === "true" || removeOldMedia === true) {
       await cloudinaryUtils.deleteMedia(post.media || []);
       post.media = [];
+    }
+
+    // Enforce: multiple uploads are only allowed for images
+    const hasNonImage = files.some((f) => !(f.mimetype && f.mimetype.startsWith("image/")));
+    if (files.length > 1 && hasNonImage) {
+      return res
+        .status(400)
+        .json({ error: "Multiple files are only allowed for images" });
     }
 
     files.forEach((file) => {

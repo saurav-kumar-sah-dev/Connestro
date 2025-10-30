@@ -154,7 +154,7 @@ export function ChatProvider({ children }) {
             [conversationId]: applyPendingToList(conversationId, msgs),
           }));
         } catch (e) {
-          // Error(e);
+          // Handle error silently
         }
       } else {
         // re-apply pending flags (in case events landed before open)
@@ -169,7 +169,7 @@ export function ChatProvider({ children }) {
         await markReadApi(conversationId);
         // no-op; already cleared optimistically
       } catch (e) {
-        console.warn("markRead failed", e);
+        // markRead failed - handled silently
       }
     },
     [messagesByConv, socket, applyPendingToList]
@@ -184,7 +184,19 @@ export function ChatProvider({ children }) {
   );
 
   const ensureConversationWithUser = useCallback(async (userId) => {
+    
+    // Check if we already have a regular conversation for this user
+    const existingConvo = conversations.find(c => 
+      c.participants && c.participants.some(p => String(p._id || p) === String(userId))
+    );
+    if (existingConvo) {
+      console.log(`Found existing conversation for user: ${userId}`);
+      return existingConvo._id;
+    }
+    
     const res = await getOrCreateConversationWithUser(userId);
+    
+    
     const convo = res.data.conversation;
     setConversations((prev) => {
       const exists = prev.find((c) => c._id === convo._id);
@@ -192,7 +204,7 @@ export function ChatProvider({ children }) {
       return [convo, ...prev];
     });
     return convo._id;
-  }, []);
+  }, [conversations]);
 
   const openConversationWithUser = useCallback(
     async (userId, navigate) => {
@@ -201,7 +213,7 @@ export function ChatProvider({ children }) {
         if (navigate) navigate(`/messages/${id}`);
         await openConversation(id);
       } catch (e) {
-        // Error("openConversationWithUser error:", e);
+        console.error("openConversationWithUser error:", e);
       }
     },
     [ensureConversationWithUser, openConversation]
@@ -209,14 +221,18 @@ export function ChatProvider({ children }) {
 
   const sendMessage = useCallback(
     async (conversationId, { text, files }) => {
-      const res = await sendMessageApi(conversationId, { text, files });
-      const msg = res.data.message;
-      setMessagesByConv((prev) => {
-        const list = prev[conversationId] || [];
-        const nextList = [...list, msg];
-        const patched = applyPendingToList(conversationId, nextList);
-        return { ...prev, [conversationId]: patched };
-      });
+      try {
+        const res = await sendMessageApi(conversationId, { text, files });
+        const msg = res.data.message;
+        setMessagesByConv((prev) => {
+          const list = prev[conversationId] || [];
+          const nextList = [...list, msg];
+          const patched = applyPendingToList(conversationId, nextList);
+          return { ...prev, [conversationId]: patched };
+        });
+      } catch (error) {
+        throw error;
+      }
     },
     [applyPendingToList]
   );

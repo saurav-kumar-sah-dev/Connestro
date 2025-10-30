@@ -302,6 +302,7 @@ io.on("connection", async (socket) => {
        if (!convo) return;
        const participants = (convo.participants || []).map((p) => String(p));
        if (!participants.includes(String(userId)) || !participants.includes(String(toUserId))) return;
+
  
        const sessKey = String(conversationId);
        // If any existing session for same conversation, end it

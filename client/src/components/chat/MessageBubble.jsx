@@ -69,12 +69,12 @@ export default function MessageBubble({ msg, meId, otherId }) {
     setMenuOpen(false);
   };
 
-  // polished bubble size and padding for better look on mobile vs desktop
-  const bubbleClasses = `relative max-w-[85%] sm:max-w-[70%] px-4 py-2.5 md:px-4.5 rounded-2xl shadow ${
+  // Enhanced bubble design with modern styling
+  const bubbleClasses = `relative max-w-[85%] sm:max-w-[70%] px-4 py-3 md:px-5 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 ${
     isMine
-      ? "bg-blue-600 text-white"
-      : "bg-slate-200 text-slate-900 dark:bg-slate-800 dark:text-slate-100"
-  } transition-colors duration-200`;
+      ? "bg-gradient-to-br from-blue-500 to-blue-600 text-white border border-blue-400/20"
+      : "bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 border border-slate-200 dark:border-slate-700"
+  } backdrop-blur-sm`;
 
   const formatDuration = (sec) => {
     if (!sec) return "00:00";
@@ -189,7 +189,7 @@ export default function MessageBubble({ msg, meId, otherId }) {
 
   return (
     <div
-      className={`flex ${isMine ? "justify-end" : "justify-start"} px-2 sm:px-4 py-1`}
+      className={`flex ${isMine ? "justify-end" : "justify-start"} px-2 sm:px-4 py-2 animate-fadeIn`}
       onMouseLeave={() => setMenuOpen(false)}
     >
       <div className="relative group">
@@ -230,19 +230,54 @@ export default function MessageBubble({ msg, meId, otherId }) {
                   msg.attachments.map((a, i) => {
                     const src = buildFileUrl(a.url);
                     return (
-                      <div key={i} className="mt-2 rounded-md overflow-hidden">
+                      <div key={i} className="mt-3 rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-200">
                         {a.type === "image" ? (
-                          <img
-                            src={src}
-                            alt={a.name || "image"}
-                            className="max-h-64 rounded-md w-full object-contain shadow-sm"
-                          />
+                          <div className="relative group">
+                            <img
+                              src={src}
+                              alt={a.name || "image"}
+                              className="max-h-80 rounded-xl w-full object-cover cursor-pointer hover:scale-105 transition-transform duration-200"
+                              onClick={() => window.open(src, '_blank')}
+                            />
+                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-200 rounded-xl flex items-center justify-center">
+                              <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-white/90 rounded-full p-2">
+                                <span className="text-lg">🔍</span>
+                              </div>
+                            </div>
+                          </div>
                         ) : a.type === "video" ? (
-                          <video src={src} controls className="max-h-64 rounded-md w-full shadow-sm" />
+                          <div className="relative">
+                            <video 
+                              src={src} 
+                              controls 
+                              className="max-h-80 rounded-xl w-full shadow-lg" 
+                              poster={src}
+                            />
+                          </div>
                         ) : (
-                          <a className="underline text-sm break-all" href={src} target="_blank" rel="noreferrer">
-                            {a.name || "File"}
-                          </a>
+                          <div className="bg-slate-100 dark:bg-slate-700 p-4 rounded-xl border border-slate-200 dark:border-slate-600">
+                            <div className="flex items-center gap-3">
+                              <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
+                                <span className="text-lg">📄</span>
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <div className="font-medium text-slate-900 dark:text-slate-100 truncate">
+                                  {a.name || "File"}
+                                </div>
+                                <div className="text-sm text-slate-500 dark:text-slate-400">
+                                  {a.size ? `${(a.size / 1024 / 1024).toFixed(1)} MB` : 'Unknown size'}
+                                </div>
+                              </div>
+                              <a 
+                                href={src} 
+                                target="_blank" 
+                                rel="noreferrer"
+                                className="px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 text-sm font-medium"
+                              >
+                                Download
+                              </a>
+                            </div>
+                          </div>
                         )}
                       </div>
                     );
@@ -272,14 +307,14 @@ export default function MessageBubble({ msg, meId, otherId }) {
           </div>
         )}
 
-        {/* Responsive, modern menu */}
+        {/* Enhanced modern menu */}
         {!isCall && !msg.isDeleted && !editing && (
-          <div className={`absolute -top-3 ${isMine ? "right-0" : "left-0"}`}>
+          <div className={`absolute -top-2 ${isMine ? "right-0" : "left-0"} opacity-0 group-hover:opacity-100 transition-opacity duration-200`}>
             <button
-              className={`text-lg w-9 h-9 sm:w-7 sm:h-7 rounded-full flex items-center justify-center shadow-md border backdrop-blur-sm transition-colors duration-150 ${
+              className={`text-lg w-8 h-8 rounded-full flex items-center justify-center shadow-lg border backdrop-blur-sm transition-all duration-200 hover:scale-110 ${
                 isMine
-                  ? "bg-white text-blue-600 hover:bg-slate-100 border-slate-300"
-                  : "bg-slate-100 text-slate-700 hover:bg-slate-200 border-slate-300 dark:bg-slate-700 dark:text-slate-100 dark:hover:bg-slate-600"
+                  ? "bg-white/90 text-blue-600 hover:bg-blue-50 border-blue-200"
+                  : "bg-slate-100/90 text-slate-700 hover:bg-slate-200 border-slate-300 dark:bg-slate-700/90 dark:text-slate-100 dark:hover:bg-slate-600 dark:border-slate-600"
               }`}
               onClick={() => setMenuOpen((v) => !v)}
               title="Message actions"
@@ -289,28 +324,31 @@ export default function MessageBubble({ msg, meId, otherId }) {
 
             {menuOpen && (
               <div
-                className={`absolute ${isMine ? "right-0" : "left-0"} mt-2 w-56 max-w-[calc(100vw-3rem)] rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-2xl text-sm z-50 overflow-hidden animate-fadeIn`}
+                className={`absolute ${isMine ? "right-0" : "left-0"} mt-2 w-56 max-w-[calc(100vw-3rem)] rounded-2xl border border-slate-200 dark:border-slate-700 bg-white/95 dark:bg-slate-900/95 shadow-2xl text-sm z-50 overflow-hidden animate-fadeIn backdrop-blur-md`}
               >
                 {isMine && (
                   <button
-                    className="block w-full text-left px-4 py-2.5 text-slate-800 dark:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                    className="w-full text-left px-4 py-3 text-slate-800 dark:text-slate-100 hover:bg-blue-50 dark:hover:bg-blue-950/30 transition-colors duration-200 flex items-center gap-3"
                     onClick={() => setEditing(true)}
                   >
-                    ✏️ Edit
+                    <span className="text-lg">✏️</span>
+                    <span>Edit message</span>
                   </button>
                 )}
                 <button
-                  className="block w-full text-left px-4 py-2.5 text-slate-800 dark:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                  className="w-full text-left px-4 py-3 text-slate-800 dark:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors duration-200 flex items-center gap-3"
                   onClick={doDeleteForMe}
                 >
-                  🗑️ Delete for me
+                  <span className="text-lg">🗑️</span>
+                  <span>Delete for me</span>
                 </button>
                 {isMine && (
                   <button
-                    className="block w-full text-left px-4 py-2.5 text-rose-600 dark:text-rose-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                    className="w-full text-left px-4 py-3 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors duration-200 flex items-center gap-3"
                     onClick={doDeleteForEveryone}
                   >
-                    🚫 Delete for everyone
+                    <span className="text-lg">🚫</span>
+                    <span>Delete for everyone</span>
                   </button>
                 )}
               </div>

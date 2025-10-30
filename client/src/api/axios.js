@@ -20,7 +20,8 @@ API.interceptors.response.use(
     const hadAuth = Boolean(error?.config?.headers?.Authorization);
     const reqUrl = error?.config?.url || "";
     const isAuthEndpoint = /\/auth\/(login|signup|social)/i.test(reqUrl);
-
+    
+    // Only auto-logout for 401 (unauthorized) or 403 (forbidden)
     if ((status === 401 || status === 403) && hadAuth && !isAuthEndpoint) {
       localStorage.removeItem("token");
       localStorage.removeItem("user");

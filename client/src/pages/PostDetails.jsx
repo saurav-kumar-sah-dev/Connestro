@@ -190,6 +190,8 @@ export default function PostDetails() {
             hideFollowButton={false}
             showAllComments={true}
             showCommentInput={true}
+            enableInlineReplies={true}
+            isDetail={true}
           />
         </div>
 
@@ -212,7 +214,7 @@ export default function PostDetails() {
         </div>
       </div>
 
-      <style jsx>{`
+      <style>{`
         @keyframes fadeIn {
           from {
             opacity: 0;

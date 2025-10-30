@@ -324,7 +324,7 @@ export default function Home() {
       </div>
 
       {/* Enhanced Animations */}
-      <style jsx>{`
+      <style>{`
         @keyframes fade-in-down {
           0% {
             opacity: 0;

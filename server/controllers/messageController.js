@@ -15,6 +15,7 @@ const ensureConversation = async (meId, otherId) => {
     throw err;
   }
 
+
   const me = toId(meId);
   const other = toId(otherId);
   const key = [String(meId), String(otherId)].sort().join("|");
@@ -95,18 +96,22 @@ exports.getOrCreateConversationWithUser = async (req, res) => {
     const other = await User.findById(otherId).select("_id");
     if (!other) return res.status(404).json({ msg: "User not found" });
 
-    const convo = await ensureConversation(meId, otherId);
+    try {
+      const convo = await ensureConversation(meId, otherId);
 
-    const populated = await Conversation.findById(convo._id)
-      .populate("participants", "firstName lastName username profileImage updatedAt")
-      .populate({
-        path: "lastMessage",
-        populate: { path: "sender", select: "username firstName lastName profileImage" },
-      });
+      const populated = await Conversation.findById(convo._id)
+        .populate("participants", "firstName lastName username profileImage updatedAt")
+        .populate({
+          path: "lastMessage",
+          populate: { path: "sender", select: "username firstName lastName profileImage" },
+        });
 
-    res.json({ conversation: populated });
+      res.json({ conversation: populated });
+    } catch (err) {
+      // Error("getOrCreateConversationWithUser error:", err);
+      res.status(err.status || 500).json({ error: err.message || "Server error" });
+    }
   } catch (err) {
-    // Error("getOrCreateConversationWithUser error:", err);
     res.status(err.status || 500).json({ error: err.message || "Server error" });
   }
 };
@@ -114,7 +119,9 @@ exports.getOrCreateConversationWithUser = async (req, res) => {
 exports.getConversations = async (req, res) => {
   try {
     const meId = req.user.id;
-    const convos = await Conversation.find({ participants: meId })
+    
+    // Get all conversations first
+    const allConvos = await Conversation.find({ participants: meId })
       .sort({ updatedAt: -1 })
       .populate("participants", "firstName lastName username profileImage updatedAt")
       .populate({
@@ -122,6 +129,9 @@ exports.getConversations = async (req, res) => {
         populate: { path: "sender", select: "username firstName lastName profileImage" },
       })
       .lean();
+
+    // Show all conversations
+    const convos = allConvos;
 
     const onlineUsers = req.app.get("onlineUsers"); // Map userId -> { sockets:Set, lastSeen:Date }
 
@@ -154,11 +164,14 @@ exports.getMessages = async (req, res) => {
     const { id } = req.params; // conversationId
     const { before, limit = 25 } = req.query;
 
+
     // Must include clearedAt for "clear chat" boundary
     const convo = await Conversation.findById(id).select("participants clearedAt");
     if (!convo) return res.status(404).json({ msg: "Conversation not found" });
     if (!convo.participants.some((p) => String(p) === String(meId)))
       return res.status(403).json({ msg: "Not a participant" });
+
+    // Blocking only prevents new messages from being sent
 
     const filter = {
       conversation: id,
@@ -212,6 +225,7 @@ exports.sendMessage = async (req, res) => {
     if (!convo) return res.status(404).json({ msg: "Conversation not found" });
     if (!convo.participants.some((p) => String(p) === String(meId)))
       return res.status(403).json({ msg: "Not a participant" });
+
 
     // Build attachments
     const attachments = (req.files || []).map((f) => ({
@@ -352,6 +366,8 @@ exports.markRead = async (req, res) => {
   try {
     const meId = req.user.id;
     const { id } = req.params; // conversationId
+    
+    
     const convo = await Conversation.findById(id);
     if (!convo) return res.status(404).json({ msg: "Conversation not found" });
     if (!convo.participants.some((p) => String(p) === String(meId)))

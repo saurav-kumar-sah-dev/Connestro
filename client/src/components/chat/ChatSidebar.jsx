@@ -142,11 +142,13 @@ export default function ChatSidebar() {
   };
 
   return (
-    <div className="h-full flex flex-col bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-950">
-      {/* Search header */}
-      <div className="p-4 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 sticky top-0 z-10 shadow-sm">
-        <h2 className="text-2xl font-bold mb-3 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent flex items-center gap-2">
-          <IoChatbubbles className="text-blue-600 dark:text-blue-400" />
+    <div className="h-full flex flex-col bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-slate-900 dark:via-slate-950 dark:to-slate-900">
+      {/* Enhanced search header */}
+      <div className="p-6 border-b border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 sticky top-0 z-10 shadow-lg backdrop-blur-sm">
+        <h2 className="text-3xl font-bold mb-4 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent flex items-center gap-3">
+          <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+            <IoChatbubbles className="text-white text-xl" />
+          </div>
           Messages
         </h2>
         <div className="relative">
@@ -155,7 +157,7 @@ export default function ChatSidebar() {
             value={q}
             onChange={(e) => searchUsers(e.target.value)}
             placeholder="Search conversations..."
-            className="w-full pl-10 pr-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200"
+            className="w-full pl-12 pr-4 py-4 rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white/80 dark:bg-slate-800/80 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 focus:ring-4 focus:ring-blue-500/20 transition-all duration-300 shadow-lg backdrop-blur-sm"
           />
 
           {q && userResults.length > 0 && (
@@ -237,7 +239,7 @@ export default function ChatSidebar() {
             return (
               <div
                 key={c._id}
-                className="flex items-center gap-3 px-4 py-3 border-b border-gray-100 dark:border-gray-800 hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 dark:hover:from-blue-950/20 dark:hover:to-purple-950/20 active:scale-[0.99] cursor-pointer transition-all duration-200 group"
+                className="flex items-center gap-4 px-6 py-4 border-b border-slate-100 dark:border-slate-800 hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 dark:hover:from-blue-950/20 dark:hover:to-purple-950/20 active:scale-[0.98] cursor-pointer transition-all duration-300 group hover:shadow-lg"
                 onClick={() => navigate(`/messages/${c._id}`)}
               >
                 <div className="relative shrink-0" title={hasStories ? "View stories" : "View profile"}>
@@ -252,7 +254,7 @@ export default function ChatSidebar() {
                     <img
                       src={avatar}
                       alt="avatar"
-                      className={`w-14 h-14 rounded-full object-cover ring-2 ring-white dark:ring-gray-900 shadow-md group-hover:scale-105 transition-transform duration-200 ${hasStories ? "bg-white p-[1px]" : ""}`}
+                      className={`w-16 h-16 rounded-2xl object-cover ring-2 ring-white dark:ring-slate-900 shadow-lg group-hover:scale-110 transition-all duration-300 ${hasStories ? "bg-white p-[1px]" : ""}`}
                     />
                   </div>
                   <span

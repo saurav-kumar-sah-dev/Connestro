@@ -62,6 +62,7 @@ exports.followUser = async (req, res) => {
     const currentUserId = req.user.id;
     if (targetId === currentUserId) return res.status(400).json({ msg: "Cannot follow yourself" });
 
+
     await Promise.all([
       User.findByIdAndUpdate(targetId, { $addToSet: { followers: currentUserId } }),
       User.findByIdAndUpdate(currentUserId, { $addToSet: { following: targetId } }),
@@ -151,6 +152,7 @@ const sanitizeUser = (user, requesterId) => {
 exports.getUserProfile = async (req, res) => {
   try {
     const viewerId = String(req.user.id);
+    const targetUserId = String(req.params.id);
 
     const user = await User.findById(req.params.id)
       .select("-password")
@@ -428,13 +430,15 @@ exports.searchUsers = async (req, res) => {
     const query = req.query.query?.trim();
     if (!query) return res.json({ users: [] });
 
-     const escapeRegex = (s = "") => s.replace(/[-/\^$*+?.()|[```{}]/g, "\$&");
+    const meId = String(req.user.id);
+
+    const escapeRegex = (s = "") => s.replace(/[-/\^$*+?.()|[```{}]/g, "\$&");
     const rx = new RegExp(escapeRegex(query), "i");
 
     const users = await User.find({
       $or: [{ username: rx }, { firstName: rx }, { lastName: rx }, { place: rx }],
     })
-      .select("firstName lastName username place profileImage") // <-- CHANGE HERE
+      .select("firstName lastName username place profileImage")
       .limit(20);
 
     res.json({ users });
@@ -446,19 +450,37 @@ exports.searchUsers = async (req, res) => {
 
 // Followers / Following 
 exports.getFollowers = async (req, res) => {
-  const user = await User.findById(req.params.id)
-    .select("followers")
-    .populate("followers", "firstName lastName username profileImage updatedAt followers");
-  if (!user) return res.status(404).json({ msg: "User not found" });
-  res.json(user.followers.map((u) => ({ ...u.toObject(), _id: u._id.toString() })));
+  try {
+    const viewerId = String(req.user.id);
+    const targetUserId = String(req.params.id);
+
+    const user = await User.findById(req.params.id)
+      .select("followers")
+      .populate("followers", "firstName lastName username profileImage updatedAt followers");
+    
+    if (!user) return res.status(404).json({ msg: "User not found" });
+
+    res.json(user.followers.map((u) => ({ ...u.toObject(), _id: u._id.toString() })));
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 };
 
 exports.getFollowing = async (req, res) => {
-  const user = await User.findById(req.params.id)
-    .select("following")
-    .populate("following", "firstName lastName username profileImage updatedAt followers");
-  if (!user) return res.status(404).json({ msg: "User not found" });
-  res.json(user.following.map((u) => ({ ...u.toObject(), _id: u._id.toString() })));
+  try {
+    const viewerId = String(req.user.id);
+    const targetUserId = String(req.params.id);
+
+    const user = await User.findById(req.params.id)
+      .select("following")
+      .populate("following", "firstName lastName username profileImage updatedAt followers");
+    
+    if (!user) return res.status(404).json({ msg: "User not found" });
+
+    res.json(user.following.map((u) => ({ ...u.toObject(), _id: u._id.toString() })));
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 };
 
 // Set/change password

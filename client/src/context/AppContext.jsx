@@ -134,25 +134,45 @@ export function AppProvider({ children }) {
     }
 
     const newSocket = io(API_BASE, {
-      transports: ["websocket", "polling"],
+      transports: ["polling", "websocket"], // Try polling first, then websocket
       withCredentials: true,
       auth: { token: authToken },
       forceNew: true,
       reconnection: true,
-      reconnectionAttempts: 5,
-      timeout: 15000,
+      reconnectionAttempts: 10,
+      reconnectionDelay: 1000,
+      reconnectionDelayMax: 5000,
+      timeout: 20000,
+      autoConnect: true,
     });
 
     newSocket.on("connect", () => {
-      // Connected, no log
+      // Connected successfully
     });
 
     newSocket.on("connect_error", (err) => {
-      // Socket connect error - handled silently
+      // Handle connection errors gracefully
+      if (err.message === "Unauthorized") {
+        // Token expired or invalid - will be handled by auth system
+        return;
+      }
+      // Other connection errors - handled silently
     });
-    newSocket.on("disconnect", (reason) =>
-      console.warn("⚠ Socket disconnected:", reason)
-    );
+    
+    newSocket.on("disconnect", (reason) => {
+      // Only log unexpected disconnections
+      if (reason !== "io client disconnect" && reason !== "transport close") {
+        console.warn("⚠ Socket disconnected:", reason);
+      }
+    });
+
+    newSocket.on("reconnect", (attemptNumber) => {
+      // Successfully reconnected
+    });
+
+    newSocket.on("reconnect_error", (error) => {
+      // Reconnection failed - handled silently
+    });
 
     setSocket(newSocket);
 

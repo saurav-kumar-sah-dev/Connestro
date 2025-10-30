@@ -549,7 +549,7 @@ export default function Reels() {
         />
       )}
 
-      <style jsx>{`
+      <style>{`
         @keyframes fadeIn {
           from {
             opacity: 0;

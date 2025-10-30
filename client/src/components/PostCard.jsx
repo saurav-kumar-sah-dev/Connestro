@@ -1,4 +1,5 @@
-import { useState, useContext, useEffect } from "react";
+import { useState, useContext, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import {
   MessageCircle,
@@ -17,6 +18,7 @@ import {
   Flame,
   Laugh,
 } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import API from "../api/axios";
 import { AppContext } from "../context/AppContext";
 import { buildFileUrl } from "../utils/url";
@@ -99,12 +101,15 @@ export default function PostCard({
   hideFollowButton,
   showAllComments = false,
   showCommentInput = false,
+  enableInlineReplies = false,
+  isDetail = false,
 }) {
   const { socket, users, setUsers, posts, setPosts, drafts, setDrafts } =
     useContext(AppContext);
   const navigate = useNavigate();
 
   const [commentText, setCommentText] = useState("");
+  const [expandedReplies, setExpandedReplies] = useState({});
   const [replyText, setReplyText] = useState({});
   const [loadingLike, setLoadingLike] = useState(false);
   const [loadingFollow, setLoadingFollow] = useState(false);
@@ -114,8 +119,77 @@ export default function PostCard({
   const [editMedia, setEditMedia] = useState([]);
   const [editLink, setEditLink] = useState("");
   const [showShare, setShowShare] = useState(false);
+  const moreBtnRef = useRef(null);
+  const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 });
+  const mediaScrollRef = useRef(null);
+  const scrollByAmount = 320;
+  const scrollMedia = (dir) => {
+    const el = mediaScrollRef.current;
+    if (!el) return;
+    el.scrollBy({ left: dir * scrollByAmount, behavior: "smooth" });
+  };
+  const [imageIndex, setImageIndex] = useState(1);
+  const imageElsRef = useRef([]);
+  const totalImages = Array.isArray(post.media)
+    ? post.media.filter((m) => m.type === "image").length
+    : 0;
+
+  useEffect(() => {
+    const el = mediaScrollRef.current;
+    if (!el) return;
+    imageElsRef.current = Array.from(
+      el.querySelectorAll('[data-image-slide="true"]')
+    );
+
+    const onScroll = () => {
+      if (!imageElsRef.current.length) return;
+      const scrollLeft = el.scrollLeft;
+      let bestIdx = 0;
+      let bestDist = Infinity;
+      imageElsRef.current.forEach((node, idx) => {
+        const left = node.offsetLeft;
+        const dist = Math.abs(left - scrollLeft);
+        if (dist < bestDist) {
+          bestDist = dist;
+          bestIdx = idx;
+        }
+      });
+      setImageIndex(bestIdx + 1);
+    };
+    el.addEventListener("scroll", onScroll, { passive: true });
+    // Initialize index
+    onScroll();
+    return () => el.removeEventListener("scroll", onScroll);
+  }, [post.media]);
+
+  const scrollToImage = (next) => {
+    const total = imageElsRef.current.length;
+    if (!total) return;
+    const el = mediaScrollRef.current;
+    const currentZeroBased = imageIndex - 1;
+    // Direct jump when wrapping
+    if (next > 0 && currentZeroBased === total - 1) {
+      el?.scrollTo({ left: 0, behavior: "auto" });
+      setImageIndex(1);
+      return;
+    }
+    if (next < 0 && currentZeroBased === 0) {
+      const last = imageElsRef.current[total - 1];
+      if (last) last.scrollIntoView({ behavior: "auto", inline: "center", block: "nearest" });
+      setImageIndex(total);
+      return;
+    }
+    const targetIdx = Math.min(Math.max(currentZeroBased + next, 0), total - 1);
+    imageElsRef.current[targetIdx]?.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+  };
 
   if (!post || !post.user) return null;
+  const viewerId =
+    currentUserId ?? (
+      JSON.parse(localStorage.getItem("user") || "{}")?.id ||
+      JSON.parse(localStorage.getItem("user") || "{}")?._id ||
+      null
+    );
   const postUser = post.user;
 
   const getUserData = (user, usersMap) => {
@@ -125,6 +199,19 @@ export default function PostCard({
         profileImage: "/default-avatar.png",
         _id: null,
       };
+    // If user is an ID string, try to resolve from usersMap; otherwise return minimal
+    if (typeof user === "string") {
+      const fromMap = usersMap[user];
+      if (!fromMap) {
+        return {
+          _id: user,
+          username: "Unknown",
+          profileImage: "/default-avatar.png",
+          status: null,
+        };
+      }
+      user = fromMap;
+    }
     const latestUser = usersMap[user._id] || user;
     const seed = new Date(latestUser.updatedAt || Date.now()).getTime();
     return {
@@ -151,9 +238,12 @@ export default function PostCard({
         : like === currentUserId
     );
 
+  const isOwner =
+    String((typeof postUser === "string" ? postUser : postUser?._id) || "") ===
+    String(viewerId || "");
   const isFollowing =
     Array.isArray(postUser.followers) &&
-    postUser.followers.map((f) => (f?._id ? f._id : f)).includes(currentUserId);
+    postUser.followers.map((f) => (f?._id ? f._id : f)).includes(viewerId);
 
   const goToProfile = () => {
     if (postUser._id) navigate(`/profile/${postUser._id}`);
@@ -267,7 +357,26 @@ export default function PostCard({
     };
   }, [socket, setPosts, setUsers]);
 
-  const handleEditFileChange = (e) => setEditMedia([...e.target.files]);
+  const handleEditFileChange = (e) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) {
+      setEditMedia([]);
+      return;
+    }
+    const allImages = files.every((f) => f.type && f.type.startsWith("image/"));
+    if (allImages) {
+      if (files.length > 5) {
+        alert("You can send up to 5 images at a time.");
+      }
+      setEditMedia(files.slice(0, 5));
+      return;
+    }
+    // If any non-image present, allow only a single file (the first one)
+    if (files.length > 1) {
+      alert("Multiple files are only allowed for images. Using the first selected file.");
+    }
+    setEditMedia([files[0]]);
+  };
 
   const handleLike = async () => {
     if (loadingLike) return;
@@ -303,7 +412,7 @@ export default function PostCard({
 
       socket?.emit("updateFollow", {
         userId: updatedUser._id,
-        currentUserId,
+        currentUserId: viewerId,
         follow: !isFollowing,
       });
     } catch (err) {
@@ -352,15 +461,26 @@ export default function PostCard({
     }
   };
 
+  const toggleReplies = (commentId) => {
+    setExpandedReplies((prev) => ({ ...prev, [commentId]: !prev[commentId] }));
+  };
+
   const setReplyValue = (cid, v) =>
     setReplyText((prev) => ({ ...prev, [cid]: v }));
+
+  const closeReply = (cid) =>
+    setReplyText((prev) => {
+      const { [cid]: _omit, ...rest } = prev;
+      return rest;
+    });
 
   const handleReplySubmit = async (commentId) => {
     const text = (replyText[commentId] || "").trim();
     if (!text) return;
     try {
       await API.post(`/posts/${post._id}/comment/${commentId}/reply`, { text });
-      setReplyValue(commentId, "");
+      closeReply(commentId);
+      setExpandedReplies((prev) => ({ ...prev, [commentId]: true }));
     } catch (err) {
       // Error("Reply error:", err);
     }
@@ -504,7 +624,7 @@ export default function PostCard({
       : Globe;
 
   return (
-    <div className="relative rounded-2xl border-2 border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden group">
+    <div className="relative rounded-2xl border-2 border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-lg hover:shadow-xl transition-all duration-300 overflow-visible group overflow-x-hidden">
       {/* Gradient accent */}
       <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-600 via-purple-500 to-pink-500" />
 
@@ -556,28 +676,29 @@ export default function PostCard({
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
-            {!hideFollowButton && postUser._id !== currentUserId && (
+          <div className="flex items-center gap-2 shrink-0">
+            {!hideFollowButton && !isOwner && (
               <button
                 onClick={handleToggleFollow}
                 disabled={loadingFollow}
-                className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-200 transform hover:scale-105 ${
+                className={`px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-200 transform hover:scale-105 ${
                   isFollowing
                     ? "bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600"
                     : "bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 shadow-md"
                 } disabled:opacity-50`}
               >
-                {isFollowing ? "Following" : "Follow"}
+                <span className="hidden sm:inline">{isFollowing ? "Following" : "Follow"}</span>
+                <span className="sm:hidden inline-block text-base leading-none">{isFollowing ? "✓" : "+"}</span>
               </button>
             )}
 
-            {postUser._id !== currentUserId && (
+            {!isOwner && (
               <button
                 onClick={reportPost}
-                className="p-2 rounded-xl border-2 border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-red-50 dark:hover:bg-red-900/20 hover:border-red-300 dark:hover:border-red-700 transition-all"
+                className="p-2 rounded-xl border-2 border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-200 hover:bg-red-50 dark:hover:bg-red-900/20 hover:border-red-300 dark:hover:border-red-700 transition-all"
                 title="Report this post"
               >
-                <Flag className="w-4 h-4" />
+                <Flag className="w-4 h-4 sm:w-5 sm:h-5" />
               </button>
             )}
 
@@ -587,26 +708,53 @@ export default function PostCard({
                 className="p-2 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 shadow-md transform hover:scale-105 transition-all"
                 title="Share"
               >
-                <Share2 className="w-4 h-4" />
+                <Share2 className="w-4 h-4 sm:w-5 sm:h-5" />
               </button>
             )}
 
-            {postUser._id === currentUserId && (
+            {isOwner && (
               <div className="relative">
                 <button
-                  onClick={() => setShowMenu(!showMenu)}
+                  ref={moreBtnRef}
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    const rect = moreBtnRef.current?.getBoundingClientRect();
+                    const dropdownWidth = 256; // w-64
+                    const estHeight = 300; // estimated menu height
+                    const margin = 8;
+                    // Use viewport coordinates for fixed positioning
+                    let top = (rect?.bottom || 0) + margin;
+                    // If not enough space below, open upwards
+                    if (rect && window.innerHeight - rect.bottom < estHeight + margin) {
+                      top = Math.max(margin, rect.top - estHeight - margin);
+                    }
+                    // Align to right edge of button, clamp within viewport
+                    let left = (rect?.right || window.innerWidth - margin) - dropdownWidth;
+                    const maxLeft = window.innerWidth - dropdownWidth - margin;
+                    if (left > maxLeft) left = maxLeft;
+                    if (left < margin) left = margin;
+                    setMenuPosition({ top, left });
+                    setShowMenu(true);
+                  }}
                   className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
                   aria-label="Post menu"
                 >
                   <MoreVertical className="w-5 h-5 text-gray-600 dark:text-gray-300" />
                 </button>
-                {showMenu && (
-                  <>
-                    <div
-                      className="fixed inset-0 z-40"
-                      onClick={() => setShowMenu(false)}
-                    />
-                    <div className="absolute right-0 mt-2 bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 rounded-2xl shadow-2xl w-64 z-50 overflow-hidden">
+                {showMenu &&
+                  createPortal(
+                    <>
+                      <div
+                        className="fixed inset-0 z-[99990]"
+                        onClick={() => setShowMenu(false)}
+                        onMouseDown={(e) => e.stopPropagation()}
+                      />
+                      <div
+                        className="fixed bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 rounded-2xl shadow-2xl ring-1 ring-gray-900/10 dark:ring-black/40 w-64 z-[99999] overflow-auto max-h-[60vh] pointer-events-auto"
+                        style={{ top: menuPosition.top || 0, left: menuPosition.left || 8 }}
+                        onClick={(e) => e.stopPropagation()}
+                      >
                       {post.draft ? (
                         <>
                           <div className="px-4 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-900">
@@ -624,7 +772,7 @@ export default function PostCard({
                             <button
                               key={value}
                               onClick={() => publishAs(value)}
-                              className="flex items-center gap-3 w-full px-4 py-3 hover:bg-blue-50 dark:hover:bg-blue-950/30 transition-colors text-left"
+                              className="flex items-center gap-3 w-full px-4 py-3 hover:bg-blue-50 dark:hover:bg-blue-950/30 transition-colors text-left text-gray-800 dark:text-gray-200"
                             >
                               <Icon className="w-4 h-4" />
                               {label}
@@ -648,7 +796,7 @@ export default function PostCard({
                             <button
                               key={value}
                               onClick={() => changeAudience(value)}
-                              className="flex items-center gap-3 w-full px-4 py-3 hover:bg-blue-50 dark:hover:bg-blue-950/30 transition-colors text-left"
+                              className="flex items-center gap-3 w-full px-4 py-3 hover:bg-blue-50 dark:hover:bg-blue-950/30 transition-colors text-left text-gray-800 dark:text-gray-200"
                             >
                               <Icon className="w-4 h-4" />
                               {label}
@@ -671,7 +819,7 @@ export default function PostCard({
                               );
                               setShowMenu(false);
                             }}
-                            className="flex items-center gap-3 w-full px-4 py-3 hover:bg-blue-50 dark:hover:bg-blue-950/30 transition-colors border-t border-gray-200 dark:border-gray-700"
+                            className="flex items-center gap-3 w-full px-4 py-3 hover:bg-blue-50 dark:hover:bg-blue-950/30 transition-colors border-t border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-200"
                           >
                             <Edit3 className="w-4 h-4" />
                             Save as Draft
@@ -684,7 +832,7 @@ export default function PostCard({
                           setIsEditing(true);
                           setShowMenu(false);
                         }}
-                        className="flex items-center gap-3 w-full px-4 py-3 hover:bg-blue-50 dark:hover:bg-blue-950/30 transition-colors border-t border-gray-200 dark:border-gray-700"
+                        className="flex items-center gap-3 w-full px-4 py-3 hover:bg-blue-50 dark:hover:bg-blue-950/30 transition-colors border-t border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-200"
                       >
                         <Edit3 className="w-4 h-4" />
                         Edit
@@ -696,9 +844,10 @@ export default function PostCard({
                         <Trash2 className="w-4 h-4" />
                         Delete
                       </button>
-                    </div>
-                  </>
-                )}
+                      </div>
+                    </>,
+                    document.body
+                  )}
               </div>
             )}
           </div>
@@ -717,9 +866,11 @@ export default function PostCard({
             <input
               type="file"
               multiple
+              accept="image/*,video/*,.pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.csv,.txt"
               onChange={handleEditFileChange}
               className="text-sm file:mr-3 file:px-4 file:py-2 file:rounded-xl file:border-0 file:bg-gradient-to-r file:from-blue-600 file:to-purple-600 file:text-white hover:file:from-blue-700 hover:file:to-purple-700 file:font-medium file:cursor-pointer"
             />
+            <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">Images: up to 5 at once. Other types: 1 file.</p>
             <input
               type="text"
               placeholder="Add a link..."
@@ -744,107 +895,113 @@ export default function PostCard({
           </div>
         ) : (
           post.content && (
-            <p className="mb-4 text-gray-800 dark:text-gray-200 leading-relaxed whitespace-pre-wrap text-base">
+            <p
+              className={`mb-4 text-gray-800 dark:text-gray-200 whitespace-pre-wrap break-words ${isDetail ? "leading-relaxed sm:text-base" : "leading-relaxed text-[15px] sm:text-base cursor-pointer hover:underline"}`}
+              onClick={() => !isDetail && navigate(`/post/${post._id}`)}
+            >
               {post.content}
             </p>
           )
         )}
 
-        {/* Media */}
-        {post.media?.map((m) => {
-          if (m.type === "image") {
-            return (
-              <div
-                key={m._id || m.url}
-                className="mb-4 overflow-hidden rounded-2xl border-2 border-gray-200 dark:border-gray-800"
-              >
-                <img
-                  src={buildFileUrl(m.url)}
-                  alt="post"
-                  className="w-full max-h-[32rem] object-cover hover:scale-105 transition-transform duration-300"
-                />
-              </div>
-            );
-          }
-          if (m.type === "video") {
-            return (
-              <div
-                key={m._id || m.url}
-                className="mb-4 overflow-hidden rounded-2xl border-2 border-gray-200 dark:border-gray-800"
-              >
-                <video controls className="w-full rounded-2xl">
-                  <source src={buildFileUrl(m.url)} />
-                </video>
-              </div>
-            );
-          }
-          if (m.type === "document") {
-            const name = m.name || fileNameFromUrl(m.url) || "document";
-            const ext = extFromName(name);
-            const sizeLabel = humanFileSize(m.sizeBytes);
-            const icon = docIcon(ext);
-            const href = buildFileUrl(m.url);
-            return (
-              <div key={m._id || m.url} className="mb-4">
-                <a
-                  href={href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-4 p-4 border-2 border-gray-200 dark:border-gray-800 rounded-2xl hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 dark:hover:from-blue-950/20 dark:hover:to-purple-950/20 transition-all transform hover:scale-[1.02] shadow-md"
-                  title={name}
+        {/* Media (horizontal scroll) */}
+        {Array.isArray(post.media) && post.media.length > 0 && (
+          <div className="mb-4 -mx-1 relative group/media">
+            {/* Left/Right scroll buttons */}
+            {totalImages > 1 && (
+              <>
+                <button
+                  type="button"
+                  onClick={() => scrollToImage(-1)}
+                  className="hidden md:flex items-center justify-center absolute left-2 top-1/2 -translate-y-1/2 z-10 w-9 h-9 rounded-full bg-white/95 dark:bg-gray-900/90 border border-gray-300 dark:border-gray-700 shadow-md hover:bg-white dark:hover:bg-gray-800 text-gray-800 dark:text-gray-100 transition-opacity opacity-0 group-hover/media:opacity-100"
+                  aria-label="Previous image"
                 >
-                  <span className="text-3xl">{icon}</span>
-                  <div className="min-w-0 flex-1">
-                    <div className="font-semibold truncate text-gray-800 dark:text-gray-200">
-                      {name}
-                    </div>
-                    <div className="text-xs text-gray-500 dark:text-gray-400">
-                      {ext ? ext.toUpperCase() : "DOC"}{" "}
-                      {sizeLabel ? `• ${sizeLabel}` : ""}
-                    </div>
-                  </div>
-                </a>
-              </div>
-            );
-          }
-          if (m.type === "link") {
-            return (
-              <div key={m._id || m.url} className="mb-4">
-                <a
-                  href={m.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-blue-600 dark:text-blue-400 hover:underline break-all font-medium"
-                  title={m.url}
+                  <ChevronLeft className="w-5 h-5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => scrollToImage(1)}
+                  className="hidden md:flex items-center justify-center absolute right-2 top-1/2 -translate-y-1/2 z-10 w-9 h-9 rounded-full bg-white/95 dark:bg-gray-900/90 border border-gray-300 dark:border-gray-700 shadow-md hover:bg-white dark:hover:bg-gray-800 text-gray-800 dark:text-gray-100 transition-opacity opacity-0 group-hover/media:opacity-100"
+                  aria-label="Next image"
                 >
-                  🔗 {m.url}
-                </a>
+                  <ChevronRight className="w-5 h-5" />
+                </button>
+              </>
+            )}
+
+            <div ref={mediaScrollRef} className={`flex gap-3 overflow-x-auto no-scrollbar px-1 snap-x snap-mandatory ${isDetail ? "max-h-[80vh]" : "max-h-[32rem]"}`}>
+              {post.media.map((m, idx) => {
+                const key = m._id || m.url;
+                const cardClass = `shrink-0 snap-center rounded-2xl border-2 border-gray-200 dark:border-gray-800 overflow-hidden ${isDetail ? "w-[92%] sm:w-[720px]" : "w-[85%] sm:w-[480px]"}`;
+                if (m.type === "image") {
+                  return (
+                    <div key={key} data-image-slide="true" className={cardClass} onClick={() => !isDetail && navigate(`/post/${post._id}`)}>
+                      <img src={buildFileUrl(m.url)} alt="post" className={isDetail ? "w-full h-full object-contain bg-black/5 dark:bg-white/5" : "w-full h-full object-cover"} />
+                    </div>
+                  );
+                }
+                if (m.type === "video") {
+                  return (
+                    <div key={key} className={cardClass} onClick={() => !isDetail && navigate(`/post/${post._id}`)}>
+                      <video controls className="w-full h-full">
+                        <source src={buildFileUrl(m.url)} />
+                      </video>
+                    </div>
+                  );
+                }
+                if (m.type === "document") {
+                  const name = m.name || fileNameFromUrl(m.url) || "document";
+                  const ext = extFromName(name);
+                  const sizeLabel = humanFileSize(m.sizeBytes);
+                  const icon = docIcon(ext);
+                  return (
+                    <div key={key} className={`${cardClass} p-4 flex items-center gap-4 bg-white dark:bg-gray-800`} onClick={() => !isDetail && navigate(`/post/${post._id}`)} title={name}>
+                      <span className="text-3xl">{icon}</span>
+                      <div className="min-w-0 flex-1">
+                        <div className="font-semibold truncate text-gray-800 dark:text-gray-200">{name}</div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400">{ext ? ext.toUpperCase() : "DOC"} {sizeLabel ? `• ${sizeLabel}` : ""}</div>
+                      </div>
+                    </div>
+                  );
+                }
+                if (m.type === "link") {
+                  return (
+                    <div key={key} className={`${cardClass} p-4 bg-white dark:bg-gray-800`} onClick={() => !isDetail && navigate(`/post/${post._id}`)}>
+                      <span className="text-blue-600 dark:text-blue-400 break-all font-medium">🔗 {m.url}</span>
+                    </div>
+                  );
+                }
+                return null;
+              })}
+            </div>
+            {totalImages > 1 && (
+              <div className="mt-2 text-center text-xs font-medium text-gray-600 dark:text-gray-300">
+                {imageIndex} / {totalImages}
               </div>
-            );
-          }
-          return null;
-        })}
+            )}
+          </div>
+        )}
 
         {/* Actions */}
-        <div className="flex items-center gap-6 mb-4 pt-4 border-t border-gray-200 dark:border-gray-800">
+        <div className="flex items-center gap-4 sm:gap-6 mb-4 pt-4 border-t border-gray-200 dark:border-gray-800">
           <button
             onClick={handleLike}
             disabled={loadingLike}
-            className={`inline-flex items-center gap-2 font-semibold transition-all transform hover:scale-110 ${
+            className={`inline-flex items-center gap-2 font-semibold transition-all transform hover:scale-105 sm:hover:scale-110 ${
               isLiked
                 ? "text-red-600 dark:text-red-400"
                 : "text-gray-700 hover:text-red-600 dark:text-gray-300 dark:hover:text-red-400"
             } ${loadingLike ? "opacity-50 cursor-not-allowed" : ""}`}
           >
-            <Heart className={`w-5 h-5 ${isLiked ? "fill-current" : ""}`} />
-            <span>{Array.isArray(post.likes) ? post.likes.length : 0}</span>
+            <Heart className={`w-4 h-4 sm:w-5 sm:h-5 ${isLiked ? "fill-current" : ""}`} />
+            <span className="text-xs sm:text-sm">{Array.isArray(post.likes) ? post.likes.length : 0}</span>
           </button>
           <button
             onClick={() => navigate(`/post/${post._id}`)}
-            className="inline-flex items-center gap-2 text-gray-700 hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400 font-semibold transition-all transform hover:scale-110"
+            className="inline-flex items-center gap-2 text-gray-700 hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400 font-semibold transition-all transform hover:scale-105 sm:hover:scale-110"
           >
-            <MessageCircle className="w-5 h-5" />
-            <span>
+            <MessageCircle className="w-4 h-4 sm:w-5 sm:h-5" />
+            <span className="text-xs sm:text-sm">
               {(Array.isArray(post.comments)
                 ? post.comments.filter(Boolean)
                 : []
@@ -857,7 +1014,7 @@ export default function PostCard({
         {commentsToShow.map((c, idx) => (
           <div
             key={c._id || `comment-${idx}`}
-            className="mb-4 p-4 bg-gray-50 dark:bg-gray-800/50 rounded-2xl"
+            className="mb-4 p-4 bg-gray-50 dark:bg-gray-800/50 rounded-2xl overflow-visible"
           >
             <div className="flex items-start gap-3">
               <img
@@ -879,7 +1036,7 @@ export default function PostCard({
                   {c.text}
                 </p>
 
-                <div className="flex gap-2 mt-2">
+                <div className="flex gap-2 mt-2 items-center">
                   {[
                     { emoji: "👍", icon: ThumbsUp },
                     { emoji: "❤️", icon: Heart },
@@ -890,23 +1047,34 @@ export default function PostCard({
                       key={emoji}
                       disabled={!c._id}
                       onClick={() => c._id && handleReact(c._id, emoji)}
-                      className="p-1.5 rounded-lg hover:bg-white dark:hover:bg-gray-700 transition-colors text-sm disabled:opacity-50"
+                      className="p-1 sm:p-1.5 rounded-lg hover:bg-white dark:hover:bg-gray-700 transition-colors text-xs sm:text-sm disabled:opacity-50"
                       title={emoji}
                     >
                       {emoji}
                     </button>
                   ))}
+                  {/* Removed redundant Like text button (👍 covered by reactions) */}
                   <button
-                    className="text-xs font-semibold text-blue-600 dark:text-blue-400 hover:underline ml-2"
-                    onClick={() =>
-                      setReplyValue(
-                        c._id,
-                        replyText[c._id] !== undefined ? replyText[c._id] : ""
-                      )
-                    }
+                    className="text-[11px] sm:text-xs font-semibold text-blue-600 dark:text-blue-400 hover:underline ml-2"
+                    onClick={() => {
+                      if (!enableInlineReplies) return navigate(`/post/${post._id}`);
+                      if (replyText[c._id] !== undefined) return closeReply(c._id);
+                      setReplyValue(c._id, "");
+                    }}
                   >
-                    Reply
+                    {enableInlineReplies && replyText[c._id] !== undefined ? "Close" : "Reply"}
                   </button>
+                  {Array.isArray(c.replies) && c.replies.length > 0 && (
+                    <button
+                      className="text-[11px] sm:text-xs font-semibold text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 ml-2"
+                      onClick={() => {
+                        if (!enableInlineReplies) return navigate(`/post/${post._id}`);
+                        toggleReplies(c._id);
+                      }}
+                    >
+                      {enableInlineReplies && expandedReplies[c._id] ? "Hide" : `View (${c.replies.length})`}
+                    </button>
+                  )}
                 </div>
 
                 {c.reactions.length > 0 && (
@@ -927,7 +1095,7 @@ export default function PostCard({
                   </div>
                 )}
 
-                {replyText[c._id] !== undefined && (
+                {enableInlineReplies && replyText[c._id] !== undefined && (
                   <div className="mt-3 flex gap-2">
                     <input
                       type="text"
@@ -942,10 +1110,17 @@ export default function PostCard({
                     >
                       <Send className="w-4 h-4" />
                     </button>
+                    <button
+                      type="button"
+                      onClick={() => closeReply(c._id)}
+                      className="px-3 py-2 rounded-xl text-sm font-semibold bg-gray-200 hover:bg-gray-300 text-gray-800 dark:bg-gray-700 dark:text-gray-100 dark:hover:bg-gray-600 transition-colors"
+                    >
+                      Cancel
+                    </button>
                   </div>
                 )}
 
-                {Array.isArray(c.replies) && c.replies.length > 0 && (
+                {enableInlineReplies && Array.isArray(c.replies) && c.replies.length > 0 && expandedReplies[c._id] && (
                   <div className="mt-4 ml-6 space-y-3">
                     {c.replies.map((r) => (
                       <div key={r._id} className="flex items-start gap-2">

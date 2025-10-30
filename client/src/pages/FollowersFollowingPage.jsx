@@ -43,6 +43,8 @@ export default function FollowersFollowingPage() {
         setUsers((prev) => ({ ...prev, [id]: resUser.data }));
 
         const resList = await API.get(`/users/${id}/${tab}`);
+        
+        
         const normalized = resList.data.map((u) => ({
           ...u,
           _id: u._id.toString(),
@@ -153,8 +155,13 @@ export default function FollowersFollowingPage() {
       </div>
 
       {/* List */}
-      <ul className="space-y-4">
-        {list.map((u) => {
+      {list.length === 0 ? (
+        <div className="text-center py-8">
+          <p className="text-gray-600 dark:text-gray-400">No {tab} found.</p>
+        </div>
+      ) : (
+        <ul className="space-y-4">
+          {list.map((u) => {
           const latest = users[u._id] || u;
           const isFollowing =
             Array.isArray(latest.followers) &&
@@ -228,7 +235,8 @@ export default function FollowersFollowingPage() {
             </li>
           );
         })}
-      </ul>
+        </ul>
+      )}
 
       {/* Story viewer */}
       {viewerOpen && viewerUser && (
