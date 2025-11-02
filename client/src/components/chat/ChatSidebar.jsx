@@ -192,14 +192,24 @@ export default function ChatSidebar() {
       {/* Conversations list */}
       <div className="flex-1 overflow-y-auto">
         {loadingConvos ? (
-          <div className="flex items-center justify-center py-12">
-            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div>
+          <div className="flex flex-col items-center justify-center py-12 px-4">
+            <div className="relative mb-4">
+              <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600 dark:border-blue-400"></div>
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="w-6 h-6 border-2 border-blue-200 dark:border-blue-800 border-t-blue-600 dark:border-t-blue-400 rounded-full animate-spin" />
+              </div>
+            </div>
+            <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Loading conversations...</p>
           </div>
         ) : filtered.length === 0 ? (
           <div className="text-center py-16 px-4">
             <IoChatbubbles className="text-6xl text-gray-300 dark:text-gray-700 mx-auto mb-4" />
-            <p className="text-gray-500 dark:text-gray-400 text-lg">No conversations yet</p>
-            <p className="text-gray-400 dark:text-gray-500 text-sm mt-2">Start chatting with someone!</p>
+            <p className="text-gray-700 dark:text-gray-300 text-lg font-semibold mb-2">No Conversations</p>
+            <p className="text-gray-500 dark:text-gray-400 text-sm">
+              {q.trim() 
+                ? "No conversations found. Try a different search term." 
+                : "You don't have any conversations yet. Search for users to start chatting!"}
+            </p>
           </div>
         ) : (
           filtered.map((c) => {

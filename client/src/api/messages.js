@@ -13,12 +13,13 @@ export const fetchMessages = (conversationId, { before, limit = 25 } = {}) => {
   return API.get(`/messages/conversations/${conversationId}/messages?${qs.toString()}`);
 };
 
-export const sendMessageApi = (conversationId, { text, files }) => {
+export const sendMessageApi = (conversationId, { text, files }, config = {}) => {
   const form = new FormData();
   if (text) form.append("text", text);
   if (Array.isArray(files)) files.forEach((f) => form.append("attachments", f));
   return API.post(`/messages/conversations/${conversationId}/messages`, form, {
     headers: { "Content-Type": "multipart/form-data" },
+    ...config
   });
 };
 

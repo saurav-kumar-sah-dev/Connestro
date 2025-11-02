@@ -8,6 +8,7 @@ import { useTheme } from "../../context/ThemeContext";
 import MessageBubble from "./MessageBubble";
 import { buildFileUrl } from "../../utils/url";
 import { IoArrowBack, IoCall, IoVideocam, IoAttach, IoSend, IoTrash } from "react-icons/io5";
+import { Loader2 } from "lucide-react";
 
 function getVisibleStatus(status, ownerId, viewerId) {
   if (!status || (!status.text && !status.emoji)) return null;
@@ -130,18 +131,34 @@ export default function ChatWindow({ conversationId, conversation }) {
 
   const [text, setText] = useState("");
   const [files, setFiles] = useState([]);
+  const [loadingMessages, setLoadingMessages] = useState(false);
+  const [sendingMessage, setSendingMessage] = useState(false);
+  const [sendingProgress, setSendingProgress] = useState("");
   const fileInput = useRef(null);
   const messagesEndRef = useRef(null);
 
   const messages = messagesByConv[conversationId] || [];
   const other = conversation?.other;
   
+  // Check if messages are already loaded
+  const messagesLoaded = conversationId && messagesByConv.hasOwnProperty(conversationId);
 
   useEffect(() => {
     if (conversationId) {
-      openConversation(conversationId);
+      // Only show loading if messages aren't already loaded
+      if (!messagesLoaded) {
+        setLoadingMessages(true);
+      }
+      const loadMessages = async () => {
+        try {
+          await openConversation(conversationId);
+        } finally {
+          setLoadingMessages(false);
+        }
+      };
+      loadMessages();
     }
-  }, [conversationId]);
+  }, [conversationId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
@@ -156,10 +173,41 @@ export default function ChatWindow({ conversationId, conversation }) {
 
 
   const onSend = async () => {
-    if (!canSend) return;
-    await sendMessage(conversationId, { text: text.trim(), files });
-    setText("");
-    setFiles([]);
+    if (!canSend || sendingMessage) return;
+    
+    try {
+      setSendingMessage(true);
+      const hasFiles = files.length > 0;
+      
+      if (hasFiles) {
+        setSendingProgress("Uploading attachments...");
+      } else {
+        setSendingProgress("Sending message...");
+      }
+
+      // Use sendMessage from context with upload progress
+      await sendMessage(
+        conversationId,
+        { text: text.trim(), files },
+        {
+          onUploadProgress: (progressEvent) => {
+            if (hasFiles && progressEvent.total) {
+              const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+              setSendingProgress(`Uploading ${percentCompleted}%...`);
+            }
+          },
+        }
+      );
+      
+      setText("");
+      setFiles([]);
+    } catch (error) {
+      console.error("Failed to send message:", error);
+      alert("Failed to send message. Please try again.");
+    } finally {
+      setSendingMessage(false);
+      setSendingProgress("");
+    }
   };
 
   const onKeyDown = (e) => {
@@ -281,34 +329,73 @@ export default function ChatWindow({ conversationId, conversation }) {
 
       {/* Messages */}
       <div className={clsx(styles.messages, darkMode ? styles.messagesDark : styles.messagesLight)}>
-        {messages.map((m) => (
-          <MessageBubble key={m._id} msg={m} meId={me.id} otherId={other?._id} />
-        ))}
-        
-        {messages.length === 0 && (
+        {loadingMessages && !messagesLoaded ? (
           <div className="flex flex-col items-center justify-center py-20 px-4">
-            <div className="w-24 h-24 bg-gradient-to-br from-blue-100 to-purple-100 dark:from-blue-900/20 dark:to-purple-900/20 rounded-full flex items-center justify-center mb-6 shadow-lg">
-              <span className="text-4xl">💬</span>
+            <div className="relative mb-6">
+              <Loader2 className="w-12 h-12 text-blue-600 dark:text-blue-400 animate-spin" />
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="w-8 h-8 border-4 border-blue-200 dark:border-blue-800 border-t-blue-600 dark:border-t-blue-400 rounded-full animate-spin" />
+              </div>
             </div>
-            <div className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-2">Start the conversation</div>
-            <div className="text-slate-600 dark:text-slate-400 text-center max-w-sm leading-relaxed">
-              Send your first message to begin chatting with {other?.firstName || 'this user'}
+            <div className="text-center space-y-2">
+              <p className="text-lg font-semibold text-gray-700 dark:text-gray-300">
+                Loading Messages
+              </p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                Fetching your conversation history...
+              </p>
             </div>
           </div>
+        ) : (
+          <>
+            {messages.map((m) => (
+              <MessageBubble key={m._id} msg={m} meId={me.id} otherId={other?._id} />
+            ))}
+            
+            {!loadingMessages && messages.length === 0 && (
+              <div className="flex flex-col items-center justify-center py-20 px-4">
+                <div className="w-24 h-24 bg-gradient-to-br from-blue-100 to-purple-100 dark:from-blue-900/20 dark:to-purple-900/20 rounded-full flex items-center justify-center mb-6 shadow-lg">
+                  <span className="text-4xl">💬</span>
+                </div>
+                <div className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-2">
+                  Start the Conversation
+                </div>
+                <div className="text-slate-600 dark:text-slate-400 text-center max-w-sm leading-relaxed">
+                  No messages yet. Send your first message to begin chatting with {other?.firstName || 'this user'}
+                </div>
+              </div>
+            )}
+          </>
         )}
         <div ref={messagesEndRef} />
       </div>
 
       {/* Composer */}
-      <div className={clsx(styles.composer, darkMode ? styles.composerDark : styles.composerLight)}>
+      <div className={clsx(styles.composer, darkMode ? styles.composerDark : styles.composerLight, "relative")}>
+          {/* Sending overlay */}
+          {sendingMessage && (
+            <div className="absolute inset-0 bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm rounded-lg z-10 flex flex-col items-center justify-center gap-2">
+              <div className="relative">
+                <Loader2 className="w-8 h-8 text-blue-600 dark:text-blue-400 animate-spin" />
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="w-6 h-6 border-2 border-blue-200 dark:border-blue-800 border-t-blue-600 dark:border-t-blue-400 rounded-full animate-spin" />
+                </div>
+              </div>
+              <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                {sendingProgress || "Sending..."}
+              </p>
+            </div>
+          )}
+
           {files.length > 0 && (
             <div className={styles.filePills}>
               {files.map((f, i) => (
                 <div key={i} className={clsx(styles.fileChip, darkMode ? styles.fileChipDark : styles.fileChipLight)}>
                   <span className="truncate max-w-[150px]">{f.name}</span>
                   <button 
-                    onClick={() => removeFile(i)}
-                    className="ml-2 text-xs hover:text-rose-500"
+                    onClick={() => !sendingMessage && removeFile(i)}
+                    disabled={sendingMessage}
+                    className="ml-2 text-xs hover:text-rose-500 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     ✕
                   </button>
@@ -320,7 +407,8 @@ export default function ChatWindow({ conversationId, conversation }) {
           <div className={styles.row}>
             <button
               className={clsx(styles.attachBtn, darkMode ? styles.attachBtnDark : styles.attachBtnLight)}
-              onClick={() => fileInput.current?.click()}
+              onClick={() => !sendingMessage && fileInput.current?.click()}
+              disabled={sendingMessage}
               title="Attach files"
             >
               <IoAttach className="text-xl" />
@@ -332,6 +420,7 @@ export default function ChatWindow({ conversationId, conversation }) {
               accept="image/*,video/*"
               multiple
               hidden
+              disabled={sendingMessage}
             />
 
             <input
@@ -341,21 +430,26 @@ export default function ChatWindow({ conversationId, conversation }) {
               placeholder="Type a message..."
               className={clsx(styles.textarea, darkMode ? styles.textareaDark : styles.textareaLight)}
               type="text"
+              disabled={sendingMessage}
             />
 
             <button
               className={clsx(
                 styles.sendBtn,
-                canSend 
+                canSend && !sendingMessage
                   ? styles.sendBtnEnabled 
                   : (darkMode ? styles.sendBtnDarkDisabled : styles.sendBtnDisabled),
-                darkMode && canSend ? "focus:ring-blue-400" : "focus:ring-blue-500"
+                darkMode && canSend && !sendingMessage ? "focus:ring-blue-400" : "focus:ring-blue-500"
               )}
               onClick={onSend}
-              disabled={!canSend}
+              disabled={!canSend || sendingMessage}
               title="Send message"
             >
-              <IoSend className="text-xl" />
+              {sendingMessage ? (
+                <Loader2 className="text-xl animate-spin" />
+              ) : (
+                <IoSend className="text-xl" />
+              )}
             </button>
           </div>
         </div>

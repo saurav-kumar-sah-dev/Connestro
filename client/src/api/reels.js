@@ -11,14 +11,18 @@ export const getUserReels = (userId) => API.get(`/reels/user/${userId}`);
 
 export const createReel = (
   file,
-  { caption = "", visibility = "public", draft = false } = {}
+  { caption = "", visibility = "public", draft = false } = {},
+  config = {}
 ) => {
   const form = new FormData();
   form.append("video", file);
   if (caption) form.append("caption", caption);
   if (visibility) form.append("visibility", visibility);
   if (draft != null) form.append("draft", String(draft));
-  return API.post("/reels", form, { headers: { "Content-Type": "multipart/form-data" } });
+  return API.post("/reels", form, { 
+    headers: { "Content-Type": "multipart/form-data" },
+    ...config
+  });
 };
 
 export const likeReel = (id) => API.post(`/reels/${id}/like`);

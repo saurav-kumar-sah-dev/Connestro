@@ -12,6 +12,8 @@ import { buildFileUrl } from "../utils/url";
 import { ChatContext } from "../context/ChatContext";
 import { createReport } from "../api/reports";
 import StatusModal from "../components/ProfileRelated/StatusModal";
+import { Loader2, FileQuestion, Inbox, Plus } from "lucide-react";
+import { useRef } from "react";
 
 // Stories
 import { getActiveStoriesMap, getUserStories, deleteStory, getUnseenStoriesMap } from "../api/stories";
@@ -52,6 +54,8 @@ export default function Profile() {
   const [reelsTab, setReelsTab] = useState("published"); // "published" | "drafts"
   const [showReelComposer, setShowReelComposer] = useState(false);
   const [draftsRefreshKey, setDraftsRefreshKey] = useState(0);
+  const [showPostForm, setShowPostForm] = useState(false);
+  const postFormRef = useRef(null);
 
   const user = users[id];
 
@@ -277,9 +281,55 @@ export default function Profile() {
     };
   }, [socket, users, setUsers, setPosts, id, navigate, currentUser]);
 
-  // Early returns
-  if (loading) return <p className="text-center mt-10 text-slate-600 dark:text-slate-300">Loading...</p>;
-  if (!user) return <p className="text-center mt-10 text-slate-600 dark:text-slate-300">User not found</p>;
+  // Loading and error states
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center px-4 py-8">
+        <div className="flex flex-col items-center justify-center gap-4">
+          <div className="relative">
+            <Loader2 className="w-12 h-12 text-blue-600 dark:text-blue-400 animate-spin" />
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="w-8 h-8 border-4 border-blue-200 dark:border-blue-800 border-t-blue-600 dark:border-t-blue-400 rounded-full animate-spin" />
+            </div>
+          </div>
+          <div className="text-center space-y-2">
+            <p className="text-lg font-semibold text-gray-700 dark:text-gray-300">
+              Loading Profile
+            </p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              Fetching user profile information...
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  
+  if (!user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center px-4 py-8">
+        <div className="flex flex-col items-center justify-center gap-4">
+          <div className="p-6 rounded-full bg-gradient-to-br from-gray-100 to-gray-50 dark:from-gray-800 dark:to-gray-900">
+            <FileQuestion className="w-12 h-12 text-gray-400 dark:text-gray-600" />
+          </div>
+          <div className="text-center space-y-2">
+            <p className="text-2xl font-bold text-gray-800 dark:text-gray-200">
+              User Not Found
+            </p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              This user doesn't exist or may have been deleted.
+            </p>
+            <button
+              onClick={() => navigate("/")}
+              className="mt-4 px-6 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold hover:from-blue-700 hover:to-purple-700 shadow-lg transform hover:scale-105 transition-all"
+            >
+              Go to Feed
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const profileImageUrl = user.profileImage
     ? buildFileUrl(user.profileImage, new Date(user.updatedAt || Date.now()).getTime())
@@ -538,7 +588,12 @@ export default function Profile() {
 
       {tab === "posts" ? (
         <>
-          {isOwn && <PostForm currentUser={currentUser} />}
+          {/* Post Form - Only show when showPostForm is true */}
+          {isOwn && showPostForm && (
+            <div ref={postFormRef} className="mb-6">
+              <PostForm currentUser={currentUser} />
+            </div>
+          )}
 
           {/* Profile post filters */}
           <div className="flex flex-wrap gap-2 mb-4 justify-center">
@@ -563,9 +618,25 @@ export default function Profile() {
               ))}
             </div>
           ) : (
-            <p className="text-center text-slate-500 dark:text-slate-400">
-              {pFilter === "drafts" ? "No drafts yet." : "No posts match this filter."}
-            </p>
+            <div className="flex flex-col items-center justify-center py-12 px-4">
+              <div className="p-6 rounded-full bg-gradient-to-br from-gray-100 to-gray-50 dark:from-gray-800 dark:to-gray-900 mb-4">
+                <Inbox className="w-16 h-16 text-gray-400 dark:text-gray-600" />
+              </div>
+              <h3 className="text-xl font-bold text-gray-800 dark:text-gray-200 mb-2">
+                {pFilter === "drafts" 
+                  ? "No Drafts Available" 
+                  : `No ${pFilter === "all" ? "" : pFilter.charAt(0).toUpperCase() + pFilter.slice(1) + " "}Posts`}
+              </h3>
+              <p className="text-gray-500 dark:text-gray-400 text-center max-w-sm">
+                {pFilter === "drafts" 
+                  ? "You haven't saved any drafts yet. When creating a post, you can save it as a draft to publish later!"
+                  : pFilter === "all"
+                  ? (isOwn 
+                    ? "You haven't published any posts yet. Create your first post to share with your followers!"
+                    : `@${user.username} hasn't published any posts yet.`)
+                  : `No ${pFilter} posts found. Try selecting a different filter or ${isOwn ? "create your own content!" : "check back later!"}`}
+              </p>
+            </div>
           )}
         </>
       ) : (
@@ -631,6 +702,50 @@ export default function Profile() {
             }
           }}
         />
+      )}
+
+      {/* Floating Action Button - Only show for own profile */}
+      {isOwn && (
+        <button
+          onClick={() => {
+            if (tab !== "posts") {
+              setTab("posts");
+              // Wait for tab change, then show form and scroll
+              setTimeout(() => {
+                setShowPostForm(true);
+                setTimeout(() => {
+                  postFormRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+                  setTimeout(() => {
+                    const textarea = postFormRef.current?.querySelector("textarea");
+                    textarea?.focus();
+                  }, 300);
+                }, 100);
+              }, 100);
+            } else {
+              if (!showPostForm) {
+                setShowPostForm(true);
+                setTimeout(() => {
+                  postFormRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+                  setTimeout(() => {
+                    const textarea = postFormRef.current?.querySelector("textarea");
+                    textarea?.focus();
+                  }, 300);
+                }, 100);
+              } else {
+                postFormRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+                setTimeout(() => {
+                  const textarea = postFormRef.current?.querySelector("textarea");
+                  textarea?.focus();
+                }, 300);
+              }
+            }
+          }}
+          className="fixed top-1/2 -translate-y-1/2 z-40 w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-2xl hover:shadow-blue-500/50 hover:from-blue-700 hover:to-purple-700 transition-all duration-300 transform hover:scale-110 active:scale-95 flex items-center justify-center group right-4 sm:right-8"
+          aria-label="Create Post"
+          title="Create a new post"
+        >
+          <Plus className="w-6 h-6 sm:w-7 sm:h-7 transition-transform group-hover:rotate-90" strokeWidth={3} />
+        </button>
       )}
     </div>
   );

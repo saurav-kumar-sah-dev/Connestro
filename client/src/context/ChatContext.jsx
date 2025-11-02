@@ -220,9 +220,9 @@ export function ChatProvider({ children }) {
   );
 
   const sendMessage = useCallback(
-    async (conversationId, { text, files }) => {
+    async (conversationId, { text, files }, config = {}) => {
       try {
-        const res = await sendMessageApi(conversationId, { text, files });
+        const res = await sendMessageApi(conversationId, { text, files }, config);
         const msg = res.data.message;
         setMessagesByConv((prev) => {
           const list = prev[conversationId] || [];
@@ -230,11 +230,19 @@ export function ChatProvider({ children }) {
           const patched = applyPendingToList(conversationId, nextList);
           return { ...prev, [conversationId]: patched };
         });
+        // Update conversation list with last message
+        setConversations((prev) =>
+          prev.map((c) =>
+            c._id === conversationId
+              ? { ...c, lastMessage: msg, unread: 0 }
+              : c
+          )
+        );
       } catch (error) {
         throw error;
       }
     },
-    [applyPendingToList]
+    [applyPendingToList, setConversations]
   );
 
   const editMessage = useCallback(async (messageId, text) => {

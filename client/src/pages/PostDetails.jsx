@@ -101,13 +101,18 @@ export default function PostDetails() {
             
             {/* Content */}
             <div className="flex flex-col items-center gap-4 relative z-10">
-              <Loader2 className="w-12 h-12 text-blue-600 animate-spin" />
-              <div className="text-center">
-                <h3 className="text-xl font-bold text-gray-800 dark:text-gray-200 mb-2">
+              <div className="relative">
+                <Loader2 className="w-12 h-12 text-blue-600 dark:text-blue-400 animate-spin" />
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="w-8 h-8 border-4 border-blue-200 dark:border-blue-800 border-t-blue-600 dark:border-t-blue-400 rounded-full animate-spin" />
+                </div>
+              </div>
+              <div className="text-center space-y-2">
+                <h3 className="text-xl font-bold text-gray-800 dark:text-gray-200">
                   Loading Post
                 </h3>
                 <p className="text-sm text-gray-600 dark:text-gray-400">
-                  Please wait while we fetch the details...
+                  Fetching post details and comments...
                 </p>
               </div>
             </div>

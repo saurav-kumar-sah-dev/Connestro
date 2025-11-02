@@ -2,6 +2,7 @@ import { useContext, useEffect, useMemo, useRef, useState } from "react";
 import { AppContext } from "../../context/AppContext";
 import { getMyReelDrafts, deleteReel, publishReel } from "../../api/reels";
 import ReelCard from "./ReelCard";
+import { Loader2, FileText } from "lucide-react";
 
 export default function UserReelDrafts({ currentUserId, refreshKey = 0, onPublished }) {
   const { socket } = useContext(AppContext);
@@ -69,8 +70,37 @@ export default function UserReelDrafts({ currentUserId, refreshKey = 0, onPublis
     }
   };
 
-  if (loading) return <div className="text-center text-gray-500 mt-4">Loading drafts…</div>;
-  if (drafts.length === 0) return <div className="text-center text-gray-500 mt-4">No drafts yet</div>;
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center py-12 px-4">
+        <div className="relative mb-4">
+          <Loader2 className="w-10 h-10 text-blue-600 dark:text-blue-400 animate-spin" />
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="w-6 h-6 border-2 border-blue-200 dark:border-blue-800 border-t-blue-600 dark:border-t-blue-400 rounded-full animate-spin" />
+          </div>
+        </div>
+        <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+          Loading your drafts...
+        </p>
+      </div>
+    );
+  }
+  
+  if (drafts.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center py-12 px-4">
+        <div className="p-6 rounded-full bg-gradient-to-br from-gray-100 to-gray-50 dark:from-gray-800 dark:to-gray-900 mb-4">
+          <FileText className="w-12 h-12 text-gray-400 dark:text-gray-600" />
+        </div>
+        <h3 className="text-lg font-bold text-gray-800 dark:text-gray-200 mb-2">
+          No Draft Reels
+        </h3>
+        <p className="text-sm text-gray-500 dark:text-gray-400 text-center max-w-sm">
+          You don't have any saved drafts. When creating a reel, you can save it as a draft to publish later!
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col items-center gap-6">

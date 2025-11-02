@@ -281,12 +281,24 @@ export default function Reels() {
     </div>
   );
 
-  const LoadingState = () => (
+  const LoadingState = ({ message = "Loading reels...", subtitle = "" }) => (
     <div className="flex flex-col items-center justify-center py-20">
-      <Loader2 className="w-12 h-12 text-blue-600 animate-spin mb-4" />
-      <p className="text-gray-600 dark:text-gray-400 font-medium">
-        Loading reels...
-      </p>
+      <div className="relative mb-6">
+        <Loader2 className="w-12 h-12 text-blue-600 dark:text-blue-400 animate-spin" />
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="w-8 h-8 border-4 border-blue-200 dark:border-blue-800 border-t-blue-600 dark:border-t-blue-400 rounded-full animate-spin" />
+        </div>
+      </div>
+      <div className="text-center space-y-2">
+        <p className="text-lg font-semibold text-gray-700 dark:text-gray-300">
+          {message}
+        </p>
+        {subtitle && (
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            {subtitle}
+          </p>
+        )}
+      </div>
     </div>
   );
 
@@ -350,12 +362,15 @@ export default function Reels() {
         <div className="relative">
           {tab === "all" ? (
             loading ? (
-              <LoadingState />
+              <LoadingState 
+                message="Loading Reels Feed" 
+                subtitle="Fetching the latest videos from your community..."
+              />
             ) : reels.length === 0 ? (
               <EmptyState
                 icon={Video}
-                title="No Reels Yet"
-                description="Be the first to share a reel with your community!"
+                title="No Reels Available"
+                description="Your reels feed is empty. Start following people or upload your first reel to see content here!"
               />
             ) : (
               <div className="flex flex-col items-center gap-6">
@@ -405,12 +420,15 @@ export default function Reels() {
             )
           ) : tab === "mine" ? (
             loadingMine ? (
-              <LoadingState />
+              <LoadingState 
+                message="Loading Your Reels" 
+                subtitle="Fetching your published videos..."
+              />
             ) : myReels.length === 0 ? (
               <EmptyState
                 icon={User}
                 title="No Published Reels"
-                description="Upload your first reel to share with your followers!"
+                description="You haven't published any reels yet. Click the Upload button to create and share your first reel with your followers!"
               />
             ) : (
               <div className="flex flex-col items-center gap-6">
@@ -460,12 +478,15 @@ export default function Reels() {
             )
           ) : (
             loadingDrafts ? (
-              <LoadingState />
+              <LoadingState 
+                message="Loading Drafts" 
+                subtitle="Retrieving your saved reel drafts..."
+              />
             ) : drafts.length === 0 ? (
               <EmptyState
                 icon={FileText}
-                title="No Drafts"
-                description="Save reels as drafts before publishing them!"
+                title="No Draft Reels"
+                description="You don't have any saved drafts. When creating a reel, you can save it as a draft to publish later!"
               />
             ) : (
               <div className="flex flex-col items-center gap-6">

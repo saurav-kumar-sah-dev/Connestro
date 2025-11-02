@@ -6,14 +6,18 @@ export const getUserStories = (userId) => API.get(`/stories/user/${userId}`);
 
 export const createStory = (
   file,
-  { caption = "", visibility = "public", durationSec = 0 } = {}
+  { caption = "", visibility = "public", durationSec = 0 } = {},
+  config = {}
 ) => {
   const form = new FormData();
   form.append("media", file);
   if (caption) form.append("caption", caption);
   if (visibility) form.append("visibility", visibility);
   if (durationSec) form.append("durationSec", String(durationSec));
-  return API.post("/stories", form, { headers: { "Content-Type": "multipart/form-data" } });
+  return API.post("/stories", form, { 
+    headers: { "Content-Type": "multipart/form-data" },
+    ...config
+  });
 };
 
 export const deleteStory = (id) => API.delete(`/stories/${id}`);

@@ -11,7 +11,8 @@ import {
   Users, 
   Lock,
   Send,
-  Save
+  Save,
+  Loader2
 } from "lucide-react";
 
 export default function PostForm({ currentUser }) {
@@ -21,6 +22,8 @@ export default function PostForm({ currentUser }) {
   const [link, setLink] = useState("");
   const [type, setType] = useState("text");
   const [visibility, setVisibility] = useState("public");
+  const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState("");
 
   const handleFileChange = (e) => {
     const files = Array.from(e.target.files || []);
@@ -43,20 +46,40 @@ export default function PostForm({ currentUser }) {
 
   const send = async (asDraft = false) => {
     if (!content.trim() && !media.length && !link.trim()) return;
+    if (uploading) return;
 
     try {
+      setUploading(true);
+      const hasMedia = (type === "image" || type === "video" || type === "document") && media.length;
+      
+      if (hasMedia) {
+        setUploadProgress("Uploading media files...");
+      } else if (type === "link") {
+        setUploadProgress("Processing link...");
+      } else {
+        setUploadProgress(asDraft ? "Saving draft..." : "Creating post...");
+      }
+
       const formData = new FormData();
       formData.append("content", content);
       formData.append("visibility", visibility);
       formData.append("draft", asDraft ? "true" : "false");
 
       if (type === "link" && link.trim()) formData.append("links", link);
-      if ((type === "image" || type === "video" || type === "document") && media.length) {
+      if (hasMedia) {
         media.forEach((file) => formData.append("media", file));
       }
 
+      setUploadProgress(hasMedia ? "Uploading to server..." : "Publishing...");
+
       const res = await API.post("/posts", formData, {
         headers: { "Content-Type": "multipart/form-data" },
+        onUploadProgress: (progressEvent) => {
+          if (hasMedia && progressEvent.total) {
+            const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+            setUploadProgress(`Uploading ${percentCompleted}%...`);
+          }
+        },
       });
 
       setContent("");
@@ -74,6 +97,9 @@ export default function PostForm({ currentUser }) {
     } catch (err) {
       // Error("Failed to post:", err);
       alert("Failed to post. Please try again.");
+    } finally {
+      setUploading(false);
+      setUploadProgress("");
     }
   };
 
@@ -112,6 +138,26 @@ export default function PostForm({ currentUser }) {
       }}
       className="relative rounded-2xl border-2 border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-lg hover:shadow-xl transition-all duration-300 p-5 md:p-6 mb-8"
     >
+      {/* Uploading overlay */}
+      {uploading && (
+        <div className="absolute inset-0 bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm rounded-2xl z-50 flex flex-col items-center justify-center gap-4">
+          <div className="relative">
+            <Loader2 className="w-12 h-12 text-blue-600 dark:text-blue-400 animate-spin" />
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="w-8 h-8 border-4 border-blue-200 dark:border-blue-800 border-t-blue-600 dark:border-t-blue-400 rounded-full animate-spin" />
+            </div>
+          </div>
+          <div className="text-center space-y-2">
+            <p className="text-lg font-semibold text-gray-700 dark:text-gray-300">
+              {uploadProgress || "Uploading..."}
+            </p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              Please wait while we process your post...
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Gradient accent */}
       <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-600 via-purple-500 to-pink-500 rounded-t-2xl" />
 
@@ -238,17 +284,37 @@ export default function PostForm({ currentUser }) {
         <button
           type="button"
           onClick={() => send(true)}
-          className="flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-semibold bg-gray-200 text-gray-800 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-100 dark:hover:bg-gray-600 transition-all transform hover:scale-105 shadow-md"
+          disabled={uploading}
+          className="flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-semibold bg-gray-200 text-gray-800 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-100 dark:hover:bg-gray-600 transition-all transform hover:scale-105 shadow-md disabled:opacity-60 disabled:cursor-not-allowed disabled:transform-none"
         >
-          <Save className="w-5 h-5" />
-          Save Draft
+          {uploading ? (
+            <>
+              <Loader2 className="w-5 h-5 animate-spin" />
+              Saving...
+            </>
+          ) : (
+            <>
+              <Save className="w-5 h-5" />
+              Save Draft
+            </>
+          )}
         </button>
         <button
           type="submit"
-          className="flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-semibold bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 transition-all transform hover:scale-105 shadow-lg"
+          disabled={uploading}
+          className="flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-semibold bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 transition-all transform hover:scale-105 shadow-lg disabled:opacity-60 disabled:cursor-not-allowed disabled:transform-none"
         >
-          <Send className="w-5 h-5" />
-          Post Now
+          {uploading ? (
+            <>
+              <Loader2 className="w-5 h-5 animate-spin" />
+              Posting...
+            </>
+          ) : (
+            <>
+              <Send className="w-5 h-5" />
+              Post Now
+            </>
+          )}
         </button>
       </div>
     </form>

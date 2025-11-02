@@ -4,6 +4,7 @@ import { AppContext } from "../../context/AppContext";
 import { getStoriesFeed, createStory, deleteStory, getUnseenStoriesMap } from "../../api/stories";
 import StoryViewer from "./StoryViewer";
 import { buildFileUrl } from "../../utils/url";
+import { Loader2 } from "lucide-react";
 
 // Time-left formatter
 const fmtTimeLeft = (ms) => {
@@ -80,6 +81,8 @@ export default function StoryBar({ openUserId, openStoryId }) {
   const [addCaption, setAddCaption] = useState("");
   const [addVisibility, setAddVisibility] = useState("public");
   const [addDurationSec, setAddDurationSec] = useState(0);
+  const [uploadingStory, setUploadingStory] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState("");
   const fileInputRef = useRef(null);
   const videoProbeRef = useRef(null);
 
@@ -317,19 +320,34 @@ export default function StoryBar({ openUserId, openStoryId }) {
   };
 
   const submitAdd = async () => {
-    if (!addFile) return;
+    if (!addFile || uploadingStory) return;
     try {
+      setUploadingStory(true);
+      const isVideo = addFile.type?.startsWith("video/");
+      setUploadProgress(isVideo ? "Uploading video..." : "Uploading image...");
+      
       const res = await createStory(addFile, {
         caption: addCaption,
         visibility: addVisibility,
         durationSec: addDurationSec || 0,
+      }, {
+        onUploadProgress: (progressEvent) => {
+          if (progressEvent.total) {
+            const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+            setUploadProgress(isVideo ? `Uploading video ${percentCompleted}%...` : `Uploading image ${percentCompleted}%...`);
+          }
+        },
       });
+      
+      setUploadProgress("Processing story...");
       const st = res.data?.story;
       if (st) setGroups((prev) => purgeExpiredGroups(groupUpsert([...prev], st)));
     } catch (e) {
       console.error(e);
       alert(e.response?.data?.msg || "Failed to upload story");
     } finally {
+      setUploadingStory(false);
+      setUploadProgress("");
       setShowAdd(false);
       cleanupPick();
     }
@@ -412,9 +430,21 @@ export default function StoryBar({ openUserId, openStoryId }) {
 
           {/* Story users */}
           {loading ? (
-            <div className="text-sm text-gray-500">Loading stories…</div>
+            <div className="flex items-center gap-3">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="flex flex-col items-center animate-pulse">
+                  <div className="w-16 h-16 rounded-full bg-gray-300 dark:bg-gray-700 mb-1" />
+                  <div className="h-3 w-12 rounded bg-gray-200 dark:bg-gray-800" />
+                </div>
+              ))}
+              <div className="ml-4 text-xs text-gray-500 dark:text-gray-400">
+                Loading stories...
+              </div>
+            </div>
           ) : groups.length === 0 ? (
-            <div className="text-sm text-gray-500">No stories yet</div>
+            <div className="text-sm text-gray-500 dark:text-gray-400 px-2">
+              No stories available. Be the first to share a story!
+            </div>
           ) : (
             groups.map((g) => {
               // skip my group in the list (it's already at left)
@@ -470,15 +500,38 @@ export default function StoryBar({ openUserId, openStoryId }) {
       {/* Add story modal */}
       {showAdd && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
-          <div className="bg-white rounded-md p-4 w-full max-w-md">
+          <div className="bg-white dark:bg-gray-900 rounded-md p-4 w-full max-w-md relative">
+            {/* Uploading overlay */}
+            {uploadingStory && (
+              <div className="absolute inset-0 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm rounded-md z-50 flex flex-col items-center justify-center gap-4">
+                <div className="relative">
+                  <Loader2 className="w-12 h-12 text-blue-600 dark:text-blue-400 animate-spin" />
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="w-8 h-8 border-4 border-blue-200 dark:border-blue-800 border-t-blue-600 dark:border-t-blue-400 rounded-full animate-spin" />
+                  </div>
+                </div>
+                <div className="text-center space-y-2">
+                  <p className="text-lg font-semibold text-gray-700 dark:text-gray-300">
+                    {uploadProgress || "Uploading story..."}
+                  </p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    Please wait while we upload your story...
+                  </p>
+                </div>
+              </div>
+            )}
+
             <div className="flex justify-between items-center mb-3">
-              <h3 className="text-lg font-semibold">Add story</h3>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Add story</h3>
               <button
                 onClick={() => {
-                  setShowAdd(false);
-                  cleanupPick();
+                  if (!uploadingStory) {
+                    setShowAdd(false);
+                    cleanupPick();
+                  }
                 }}
-                className="px-2 py-1 rounded hover:bg-gray-100"
+                disabled={uploadingStory}
+                className="px-2 py-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 ✕
               </button>
@@ -518,15 +571,29 @@ export default function StoryBar({ openUserId, openStoryId }) {
             <div className="flex justify-end gap-2 mt-3">
               <button
                 onClick={() => {
-                  setShowAdd(false);
-                  cleanupPick();
+                  if (!uploadingStory) {
+                    setShowAdd(false);
+                    cleanupPick();
+                  }
                 }}
-                className="px-3 py-1 rounded border"
+                disabled={uploadingStory}
+                className="px-3 py-1 rounded border text-gray-700 dark:text-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Cancel
               </button>
-              <button onClick={submitAdd} className="px-3 py-1 rounded bg-blue-600 text-white">
-                Post
+              <button 
+                onClick={submitAdd} 
+                disabled={uploadingStory || !addFile}
+                className="px-3 py-1 rounded bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-2"
+              >
+                {uploadingStory ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Uploading...
+                  </>
+                ) : (
+                  "Post"
+                )}
               </button>
             </div>
           </div>

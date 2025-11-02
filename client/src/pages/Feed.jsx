@@ -18,15 +18,27 @@ import {
   Video,
   FileText,
   Link2,
-  Grid3x3
+  Grid3x3,
+  Plus
 } from "lucide-react";
+import { useRef } from "react";
 
 const Spinner = () => (
   <div className="flex flex-col items-center justify-center gap-4">
-    <Loader2 className="h-12 w-12 text-blue-600 animate-spin" />
-    <p className="text-lg font-medium text-gray-600 dark:text-gray-400">
-      Loading your feed...
-    </p>
+    <div className="relative">
+      <Loader2 className="h-12 w-12 text-blue-600 dark:text-blue-400 animate-spin" />
+      <div className="absolute inset-0 flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-blue-200 dark:border-blue-800 border-t-blue-600 dark:border-t-blue-400 rounded-full animate-spin" />
+      </div>
+    </div>
+    <div className="text-center space-y-2">
+      <p className="text-lg font-semibold text-gray-700 dark:text-gray-300">
+        Loading your feed
+      </p>
+      <p className="text-sm text-gray-500 dark:text-gray-400">
+        Fetching the latest posts from your community...
+      </p>
+    </div>
   </div>
 );
 
@@ -73,6 +85,8 @@ export default function Feed() {
   const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("all");
+  const [showPostForm, setShowPostForm] = useState(false);
+  const postFormRef = useRef(null);
 
   const location = useLocation();
   const params = new URLSearchParams(location.search);
@@ -162,8 +176,12 @@ export default function Feed() {
           <ReelsRail limit={12} />
         </div>
 
-        {/* Post Form */}
-        <PostForm currentUser={currentUser} />
+        {/* Post Form - Only show when showPostForm is true */}
+        {showPostForm && (
+          <div ref={postFormRef} className="mb-8">
+            <PostForm currentUser={currentUser} />
+          </div>
+        )}
 
         {/* Media Filters */}
         <div className={styles.filterContainer}>
@@ -223,14 +241,45 @@ export default function Feed() {
         ) : (
           <div className={clsx(styles.emptyStateContainer, darkMode ? styles.emptyStateContainerDark : styles.emptyStateContainerLight)}>
             <EmptyStateIcon className={clsx(styles.emptyStateIcon, darkMode ? styles.emptyStateIconDark : styles.emptyStateIconLight)} />
-            <h3 className={styles.emptyStateTitle}>No Posts Found</h3>
+            <h3 className={styles.emptyStateTitle}>
+              {filter === "all" ? "No Posts Yet" : `No ${filter.charAt(0).toUpperCase() + filter.slice(1)} Posts`}
+            </h3>
             <p className={styles.emptyStateText}>
               {filter === "all" 
-                ? "Be the first to share something new with your community!" 
-                : `No ${filter} posts yet. Try selecting a different filter or create a new post!`}
+                ? "Your feed is empty. Start following people or create your first post to see content here!" 
+                : `We couldn't find any ${filter} posts. Try selecting a different filter or share your own content!`}
             </p>
           </div>
         )}
+
+        {/* Floating Action Button */}
+        <button
+          onClick={() => {
+            if (!showPostForm) {
+              setShowPostForm(true);
+              // Wait for form to render, then scroll and focus
+              setTimeout(() => {
+                postFormRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+                setTimeout(() => {
+                  const textarea = postFormRef.current?.querySelector("textarea");
+                  textarea?.focus();
+                }, 300);
+              }, 100);
+            } else {
+              // If already shown, just scroll to it
+              postFormRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+              setTimeout(() => {
+                const textarea = postFormRef.current?.querySelector("textarea");
+                textarea?.focus();
+              }, 300);
+            }
+          }}
+          className="fixed top-1/2 -translate-y-1/2 z-40 w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-2xl hover:shadow-blue-500/50 hover:from-blue-700 hover:to-purple-700 transition-all duration-300 transform hover:scale-110 active:scale-95 flex items-center justify-center group right-4 sm:right-8"
+          aria-label="Create Post"
+          title="Create a new post"
+        >
+          <Plus className="w-6 h-6 sm:w-7 sm:h-7 transition-transform group-hover:rotate-90" strokeWidth={3} />
+        </button>
       </div>
     </div>
   );

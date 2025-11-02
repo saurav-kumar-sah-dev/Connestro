@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { getReelsFeed } from "../../api/reels";
 import { buildFileUrl } from "../../utils/url";
 import { useNavigate } from "react-router-dom";
+import { Loader2 } from "lucide-react";
 
 export default function ReelsRail({ limit = 12 }) {
   const [reels, setReels] = useState([]);
@@ -26,7 +27,38 @@ export default function ReelsRail({ limit = 12 }) {
     return () => { mounted = false; };
   }, [limit]);
 
-  if (loading) return null;
+  if (loading) {
+    return (
+      <div className="w-full px-2">
+        <div className="flex items-center justify-between mb-2">
+          <div className="text-lg font-semibold">Reels</div>
+          <button
+            className="text-blue-600 hover:underline"
+            onClick={() => navigate("/reels")}
+            title="Open Reels"
+          >
+            View all
+          </button>
+        </div>
+        <div className="w-full overflow-x-auto">
+          <div className="flex gap-3 pb-2">
+            {[1, 2, 3, 4].map((i) => (
+              <div
+                key={i}
+                className="relative w-[130px] h-[220px] rounded-md overflow-hidden bg-gray-200 dark:bg-gray-800 animate-pulse flex items-center justify-center"
+              >
+                <Loader2 className="w-8 h-8 text-gray-400 dark:text-gray-600 animate-spin" />
+              </div>
+            ))}
+          </div>
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 px-1">
+            Loading trending reels...
+          </p>
+        </div>
+      </div>
+    );
+  }
+  
   if (!reels.length) return null;
 
   return (
