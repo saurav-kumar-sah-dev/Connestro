@@ -435,8 +435,10 @@ exports.searchUsers = async (req, res) => {
     const escapeRegex = (s = "") => s.replace(/[-/\^$*+?.()|[```{}]/g, "\$&");
     const rx = new RegExp(escapeRegex(query), "i");
 
+    // Exclude admin users from search results for security
     const users = await User.find({
       $or: [{ username: rx }, { firstName: rx }, { lastName: rx }, { place: rx }],
+      role: { $ne: "admin" } // Exclude admin users
     })
       .select("firstName lastName username place profileImage")
       .limit(20);
